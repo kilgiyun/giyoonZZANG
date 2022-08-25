@@ -37,6 +37,9 @@ class pathReader():
                 
         self.proj_UTM= Proj(proj='utm', zone=52, ellps='WGS84', preserve_units=False)
 
+        self.x_init = 0 
+        self.y_init = 0 
+        
         rospy.Subscriber('/gps', GPSMessage, self.gpsCB)
         rospy.Subscriber('/imu', Imu, self.imuCB)
         rospack = rospkg.RosPack()
@@ -58,8 +61,7 @@ class pathReader():
         self.x = 0
         self.y = 0
         
-        self.x_init = 0 
-        self.y_init = 0 
+
 
         self.main()
 
@@ -71,8 +73,7 @@ class pathReader():
             self.gpsinit = False
             
         self.x = xy_zone[0] - self.x_init
-        self.y = xy_zone[1] - self.y_init        
-        # print(self.x, self.y)
+        self.y = xy_zone[1] - self.y_init 
                
     def imuCB(self, _data:Imu):
         quaternion = (_data.orientation.x, _data.orientation.y, _data.orientation.z, _data.orientation.w)
@@ -107,15 +108,22 @@ class pathReader():
         
         # rospy.sleep(0.1)
         global_len = int(len(self.global_path.poses))
-
+        dis_array = []
         for i in range(global_len):
             dx = self.x - self.global_path.poses[i].pose.position.x 
             dy = self.y - self.global_path.poses[i].pose.position.y         #### //
             dis = sqrt(pow(dx,2)+pow(dy,2))     #### 변위
-            if dis < min_dis :
-                min_dis = dis
-                self.current_waypoint = i
-                
+            dis_array.append(dis)
+            
+            # if dis < min_dis :
+            #     min_dis = dis
+            #     self.current_waypoint = i
+            # print(self.current_waypoint)
+        min(dis_array)
+        dis_array.index(min(dis_array))    
+        self.current_waypoint = dis_array.index(min(dis_array))
+        print('current :', self.current_waypoint)
+        
         if self.current_waypoint + 16 > len(self.global_path.poses) : #현재 웨이 포인트+50이 len(ref_path)보다 크면
             last_local_waypoint = len(self.global_path.poses)      #last_local_waypoint는 reh_path
         else :
@@ -179,7 +187,7 @@ class pathReader():
         br = tf.TransformBroadcaster()
         self.global_path = self.read_txt(self.path_name)
         while not rospy.is_shutdown():
-            print(self.global_path)
+            # print(self.global_path)
             self.local_path  = self.findLocalPath()
             self.global_path_pub.publish(self.global_path)
             self.local_path_pub.publish(self.local_path)

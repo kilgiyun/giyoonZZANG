@@ -17,7 +17,7 @@ from pyproj import Proj
 
 class Start_planner():
     def __init__(self):       
-        self.astar_pub  = False
+        self.astar_pub  = True
         self.yolo_pub   = False 
         self.gps_init   = True
 
@@ -114,25 +114,24 @@ class Start_planner():
     def astarCB(self, _data:Path):                
         self.astar_path = _data.poses                        
         length = len(_data.poses)
-        # print(self.mode)
+        if self.astar_pub:
+            self.goal_pos_x = self.astar_path[length - 1].pose.position.x
+            self.goal_pos_y = self.astar_path[length - 1].pose.position.y
+            self.astar_pub = False
         print(self.astar_path[length - 1].pose.position.x)
-        self.goal_pos_x = self.astar_path[length - 1].pose.position.x
-        print(self.astar_path[length - 1].pose.position.y)
-        self.goal_pos_y = self.astar_path[length - 1].pose.position.y
-
+        # print(self.astar_path[length - 1].pose.position.y)
+        
     def main(self):
         
         while not rospy.is_shutdown():
             if self.astar_path:
-                # print('11')
                 self.mode = 2
                 dis = sqrt(pow(self.goal_pos_x - self.cur_x,2) + pow(self.goal_pos_y - self.cur_y, 2))
-                if dis < 1 :
-                    self.mode = 1
-                    
+                if dis < 2 :
+                    self.astar_path = False
             else:
-                pass
-                # self.mode = 1
+                # pass
+                self.mode = 1
             print(self.mode)
             self.mode_pub.publish(self.mode)
             

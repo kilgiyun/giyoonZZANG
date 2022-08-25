@@ -39,7 +39,7 @@ class purePursuit:                                          #### purePursuit 알
         rospy.Subscriber('/imu', Imu, self.imuCB)
         
         self.local_status = False
-        self.astar_on     = False
+        self.astar_on     = True
         self.is_status    = False
         self.gps_init     = True
 
@@ -47,6 +47,7 @@ class purePursuit:                                          #### purePursuit 알
         self.ctrl_msg              = CtrlCmd()
         self.forward_point         = Point()
         self.current_position      = Point()
+        self.astar_real_path       = Path()
         self.is_look_forward_point = False
         self.vehicle_length        = 2.8
         self.lfd                   = 5
@@ -81,10 +82,21 @@ class purePursuit:                                          #### purePursuit 알
         self.local_status = True
         
     def astarCB(self, _data:Path):
-        print('astar_path_subscribe')
         self.astar_path = _data
-        # print('astar:', type(self.astar_path))?
-        
+        if self.astar_on:
+            
+            for a in range(len(self.astar_path.poses)):
+                read_pose = PoseStamped()
+                read_pose.pose.position.x    = self.astar_path.poses[a].pose.position.x
+                read_pose.pose.position.y    = self.astar_path.poses[a].pose.position.y
+                read_pose.pose.orientation.x = 0
+                read_pose.pose.orientation.y = 0
+                read_pose.pose.orientation.z = 0
+                read_pose.pose.orientation.w = 1
+                self.astar_real_path.poses.append(read_pose)
+                self.astar_on = False
+            
+        # print(self.astar_real_path.poses[len(self.astar_path.poses)-1].pose.position)
 
     def gpsCB(self, _data: GPSMessage):
         xy_zone= self.proj_UTM(_data.longitude, _data.latitude)
@@ -122,7 +134,7 @@ class purePursuit:                                          #### purePursuit 알
         if self.local_status:
             if self.mode == 1:
                 for k in self.local_path.poses:
-                    # print('local')
+                    print('local')
                     path_point = k.pose.position
 
                     dx = path_point.x - vehicle_position.x ## 변위
@@ -152,13 +164,15 @@ class purePursuit:                                          #### purePursuit 알
                 theta=atan2(rotated_point.y,rotated_point.x)
                 # if self.is_look_forward_point:
                 self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)*180/pi   #### 추종 각도 
-                    # print('angle: ',self.steering) ###deg
+                # print('local_angle: ',self.steering) ###deg
                 return self.steering                                                        #### Steering 반환 
                 # else : 
                     # print("no found forward point")
                     # return 0
             elif self.mode == 2:
-                for l in self.astar_path.poses:
+                check_ = 0
+                for l in self.astar_real_path.poses:
+                    # print(self.astar_real_path.poses[check_].pose.position.x)
                     # print('astar')
                     path_point = l.pose.position
                     dx = path_point.x - vehicle_position.x ## 변위
@@ -179,16 +193,15 @@ class purePursuit:                                          #### purePursuit 알
                             self.is_look_forward_point = True
                             
                             break
-                        
+                    check_ = check_+1
                 theta=atan2(rotated_point.y,rotated_point.x)
                 self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)*180/pi   #### 추종 각도 )
-                a = self.steering/180 * pi
-                # print("astar : ", a)
+                a = self.steering
+                # print("astar_angle : ", a)
                 return self.steering                                                        #### Steering 반환 
             else:
                 pass
                
-
     def goal_vel(self, target_vel_m):          #### km/h -> m/s 해주는 함수
         target_vel = target_vel_m * (1000/3600)
         return target_vel
@@ -211,7 +224,7 @@ class purePursuit:                                          #### purePursuit 알
                 elif self.ctrl_msg.steering > abs(0.8):                                 #### 이 if문의 목적은 코너링 할때 속도를 줄여주는 건데 아직 미완
                     target_vel = self.goal_vel(7)
                 else:
-                    target_vel = self.goal_vel(20)
+                    target_vel = self.goal_vel(15)
 
             control_input = self.pid.fnc_pid(target_vel, self.vel_x)
 
