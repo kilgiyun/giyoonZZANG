@@ -167,7 +167,6 @@ class pathReader():
             tmp_pose                    = PoseStamped()
             tmp_pose.pose.position.x    = self.global_path.poses[j].pose.position.x
             tmp_pose.pose.position.y    = self.global_path.poses[j].pose.position.y
-            
             tmp_pose.pose.orientation.x = 0
             tmp_pose.pose.orientation.y = 0
             tmp_pose.pose.orientation.z = 0
@@ -180,6 +179,7 @@ class pathReader():
         br = tf.TransformBroadcaster()
         self.global_path = self.read_txt(self.path_name)
         while not rospy.is_shutdown():
+            print(self.global_path)
             self.local_path  = self.findLocalPath()
             self.global_path_pub.publish(self.global_path)
             self.local_path_pub.publish(self.local_path)
