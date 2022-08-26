@@ -51,6 +51,7 @@ class purePursuit:                                          #### purePursuit 알
         self.astar_on     = False
         self.is_status    = False
         self.gps_init     = True
+        self.init_flag    = False
 
         self.pid                   = pidController()
         self.ctrl_msg              = CtrlCmd()
@@ -80,7 +81,7 @@ class purePursuit:                                          #### purePursuit 알
 
         self.vel_x =0 
         
-        self.point0_x=0,
+        self.point0_x=0
         self.point0_y=0
         
         rospack =   rospkg.RosPack()
@@ -117,10 +118,10 @@ class purePursuit:                                          #### purePursuit 알
 
     # def gpsCB(self, _data: GPSMessage):
     #     xy_zone= self.proj_UTM(_data.longitude, _data.latitude)
-    #     if self.gps_init:
-    #         self.x_init = xy_zone[0]
-    #         self.y_init = xy_zone[1]
-    #         self.gps_init = False
+        # if self.gps_init:
+        #     self.x_init = xy_zone[0]
+        #     self.y_init = xy_zone[1]
+        #     self.gps_init = False
             
     #     self.x = xy_zone[0] - self.x_init
     #     self.y = xy_zone[1] - self.y_init
@@ -142,11 +143,17 @@ class purePursuit:                                          #### purePursuit 알
         self.lon = data.longitude      
         self.lat = data.latitude       
 
-        xy_zone= self.proj_UTM(self.lon, self.lat)   
+        xy_zone= self.proj_UTM(self.lon, self.lat)
+        if self.gps_init:
+            self.x_init = xy_zone[0]
+            self.y_init = xy_zone[1]
+            self.gps_init = False   
 
-        self.x = xy_zone[0]           
-        self.y = xy_zone[1]       
+        self.x = xy_zone[0] - self.x_init           
+        self.y = xy_zone[1] - self.y_init       
     
+        self.is_status = True
+        
     def imuCB(self, _data:Vector3Stamped):
     
         self.yaw = _data.vector.z
