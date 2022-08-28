@@ -70,13 +70,13 @@ class Start_planner():
 
         xy_zone= self.proj_UTM(self.lon, self.lat) 
         
-        if self.gps_init:
-            self.x_init = xy_zone[0]
-            self.y_init = xy_zone[1]
-            self.gps_init = False  
+        # if self.gps_init:
+        #     self.x_init = xy_zone[0]
+        #     self.y_init = xy_zone[1]
+        #     self.gps_init = False  
 
-        self.cur_x = xy_zone[0] - self.x_init
-        self.cur_y = xy_zone[1] - self.y_init                   
+        self.cur_x = xy_zone[0] #- self.x_init
+        self.cur_y = xy_zone[1] #- self.y_init                   
 
     # def gpsCB(self, _data: GPSMessage):
     #     xy_zone= self.proj_UTM(_data.longitude, _data.latitude)

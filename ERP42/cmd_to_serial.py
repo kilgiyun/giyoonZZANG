@@ -14,7 +14,7 @@ stopbits = serial.STOPBITS_ONE,
 xonxoff = False
 ser = serial.Serial()
 ser.baudrate = 115200
-ser.port = '/dev/ttyUSB2'
+ser.port = '/dev/ttyUSB0'
 ser.open()
 
 #now cmd_vel.linear.x = 1

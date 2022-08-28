@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from importlib.resources import path
+from mimetypes import init
 import pstats
 import sys
 
@@ -24,7 +25,7 @@ from std_msgs.msg import Float32MultiArray
 
 class purePursuit:                                          #### purePursuit 알고리즘 적용 ##
     def __init__(self):
-        self.path_name='0827_1.txt'
+        # self.path_name='0827_1.txt'
         self.steering_pub = rospy.Publisher('/steering_angle', CtrlCmd , queue_size=1)
         self.ctrl_pub     = rospy.Publisher('/ctrl_cmd',CtrlCmd, queue_size=20)
 
@@ -51,7 +52,8 @@ class purePursuit:                                          #### purePursuit 알
         self.astar_on     = False
         self.is_status    = False
         self.gps_init     = True
-        self.init_flag    = False
+        self.init_flag    = 0
+        
 
         self.pid                   = pidController()
         self.ctrl_msg              = CtrlCmd()
@@ -71,18 +73,16 @@ class purePursuit:                                          #### purePursuit 알
         self.y = 0
         
         self.mode = 0 
-        
-        self.x_init = 0
-        self.y_init = 0 
 
         self.roll  = 0
         self.pitch = 0
         self.yaw   = 0
 
         self.vel_x =0 
+        self.psi_err=0
         
-        self.point0_x=362072.8130564599
-        self.point0_y=4054346.5854840763
+        self.x_init=362072.8130564599
+        self.y_init=4054346.5854840763
         
         rospack =   rospkg.RosPack()
         self.file_path  =  rospack.get_path('my_test')
@@ -144,13 +144,13 @@ class purePursuit:                                          #### purePursuit 알
         self.lat = data.latitude       
 
         xy_zone= self.proj_UTM(self.lon, self.lat)
-        if self.gps_init:
-            self.x_init = xy_zone[0]
-            self.y_init = xy_zone[1]
-            self.gps_init = False   
+        # if self.gps_init:
+        #     self.x_init = xy_zone[0]
+        #     self.y_init = xy_zone[1]
+        #     self.gps_init = False   
 
-        self.x = xy_zone[0] - self.x_init           
-        self.y = xy_zone[1] - self.y_init       
+        self.x = xy_zone[0] #- self.x_init           
+        self.y = xy_zone[1] #- self.y_init       
     
         self.is_status = True
         
@@ -158,16 +158,26 @@ class purePursuit:                                          #### purePursuit 알
     
         self.yaw = _data.vector.z
         # self.get_fp(self.path_name)
-        psi_way=atan2(self.point0_y-self.y,self.point0_x-self.x)
+        self.x_init=362092.6920764289
+        self.x1=362091.7184239131
+        self.y_init=4054330.164900465
+        self.y1=4054330.8019527746
+        # psi_way=atan2(self.y1-self.y_init,self.x1-self.x_init)
+        psi_way=atan2(self.y_init-self.y,self.x_init-self.x)
         
-        if self.init_flag == False:
+        if self.init_flag <30:
+            self.init_flag +=1
+        elif self.init_flag == 30:
             self.psi_err = psi_way - self.yaw
-            # print("Psi_Err: {}".format(self.psi_err))
-            self.init_flag = True
+            self.init_flag +=1
+        else:
+            pass
+             
+           
+        self.yaw = self.yaw + self.psi_err    
+          
         
-        self.yaw = self.yaw + self.psi_err
         
-        print("Atan2 : {} | Psi : {} | err : {} ".format(psi_way,self.yaw,self.psi_err))
         # print('psi_way : {0}\n yaw_imu : {1} \n psi_err : {2}'.format(psi_way, self.yaw, psi_err))
         # print('yaw_init : {}'.format(self.yaw))
         if self.yaw>pi:
@@ -176,7 +186,9 @@ class purePursuit:                                          #### purePursuit 알
             self.yaw=self.yaw+2*pi
         else:
              pass      
-
+        # print(self.yaw)
+        print("Atan2 : {} | Psi : {} | err : {} ".format(psi_way,self.yaw,self.psi_err))
+        
         self.is_status = True       
         
     def egoCB(self, _data: EgoVehicleStatus):
@@ -276,7 +288,7 @@ class purePursuit:                                          #### purePursuit 알
             steering_angle = self.steering_angle()
             # print('pub : ',steering_angle)
             if type(steering_angle)==float:
-                self.ctrl_msg.steering = steering_angle/180 * pi
+                self.ctrl_msg.steering = -steering_angle/180 * pi
 
             if self.is_status:
                 if self.ctrl_msg.steering > abs(0.4): 

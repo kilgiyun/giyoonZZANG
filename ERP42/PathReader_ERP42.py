@@ -26,7 +26,7 @@ from pyproj import Proj
 class pathReader():                                         
     def __init__(self):
 
-        self.path_name = '0827_1.txt'
+        self.path_name = '0829_2.txt'
         self.global_path_pub = rospy.Publisher('/global_path', Path, queue_size=1)
         self.local_path_pub  = rospy.Publisher('/local_path',Path, queue_size=1)
         self.tf_pub          = rospy.Publisher('/tf', TFMessage, queue_size=1)
@@ -90,13 +90,13 @@ class pathReader():
         self.lat = data.latitude       
 
         xy_zone= self.proj_UTM(self.lon, self.lat)
-        if self.gpsinit:
-            self.x_init = xy_zone[0]
-            self.y_init = xy_zone[1]
-            self.gpsinit = False   
+        # if self.gpsinit:
+        #     self.x_init = xy_zone[0]
+        #     self.y_init = xy_zone[1]
+        #     self.gpsinit = False   
 
-        self.x = xy_zone[0] - self.x_init           
-        self.y = xy_zone[1] - self.y_init        
+        self.x = xy_zone[0] #- self.x_init           
+        self.y = xy_zone[1] #- self.y_init        
     
     # def imuCB(self, _data:Vector3Stamped):
     
