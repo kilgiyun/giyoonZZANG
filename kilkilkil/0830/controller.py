@@ -41,6 +41,7 @@ class velocity_PidController :                                                  
         self.vel_x = 0
         
         self.yaw = 0
+        self.yawrate = 0
         
         self.target_vel = 0
         self.steering   = 0
@@ -54,6 +55,10 @@ class velocity_PidController :                                                  
         self.e_int = 0
         self.e_dot_int = 0
         self.e_ddot_int = 0
+        
+        self.filtered_des_psi = 0
+        self.filtered_des_psi_dot = 0
+        self.filtered_des_psi_ddot = 0
         
         self.ctrl_msg = CtrlCmd()
         
@@ -71,6 +76,7 @@ class velocity_PidController :                                                  
     def imuCB(self, _data:Imu):
         quaternion = (_data.orientation.x, _data.orientation.y, _data.orientation.z, _data.orientation.w)
         self.roll,self.pitch,self.yaw = euler_from_quaternion(quaternion)           #### roll, pitch, yaw 로 변환
+        self.yawrate = (_data.angular_velocity.z) * self.deg2rad
 
     def cmdCB(self, _data:CtrlCmd):
         self.target_vel = _data.velocity
@@ -145,7 +151,6 @@ class velocity_PidController :                                                  
         _u = self.e_dot_int + _k1 * e + _delta_hat * _sat
         
         return _u
-        
     
     def main(self):
         _temp = 0
@@ -161,7 +166,7 @@ class velocity_PidController :                                                  
             # self.ctrl_msg.steering = self.steering
             self.ctrl_msg.steering = angle_input
             
-            print("1 : {0}, 2 : {1}".format(_temp, self.steering))
+            # print("1 : {0}, 2 : {1}".format(_temp, self.steering))
         
             if vel_input > 0:                                   
                 self.ctrl_msg.accel = vel_input                 
