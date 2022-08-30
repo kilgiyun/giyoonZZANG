@@ -15,12 +15,12 @@ def talker():
         steer = 0
         while True :
             if count%2 == 0:
-                steer +=1
+                steer +=25
                 time.sleep(0.05)
                 if steer == 2000:
                     count +=1
             elif count%2 == 1:
-                steer -= 1
+                steer -= 25
                 time.sleep(0.05)
                 if steer == -2000:
                     count +=1
