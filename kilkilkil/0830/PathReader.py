@@ -25,7 +25,7 @@ from pyproj import Proj
 
 class pathReader():                                         
     def __init__(self):
-        self.path_name = '0826_03.txt'
+        self.path_name = '0830.txt'
         rospack = rospkg.RosPack()
         self.file_path = rospack.get_path("my_test")
 
@@ -35,9 +35,9 @@ class pathReader():
                 
         self.proj_UTM= Proj(proj='utm', zone=52, ellps='WGS84', preserve_units=False)
 
-        self.x_init = 0 
-        self.y_init = 0 
-        
+        self.x_init = 302473.5122667786
+        self.y_init = 4123735.6543077542
+
         self.rate = rospy.Rate(30)
 
         self.global_path = 0
@@ -60,11 +60,13 @@ class pathReader():
 
     def gpsCB(self, _data: GPSMessage):
         xy_zone= self.proj_UTM(_data.longitude, _data.latitude)
-        if self.gpsinit:
-            self.x_init = xy_zone[0]
-            self.y_init = xy_zone[1]
-            self.gpsinit = False
+        # if self.gpsinit:
+        #     self.x_init = xy_zone[0]
+        #     self.y_init = xy_zone[1]
+        #     self.gpsinit = False
             
+        # print(self.x_init)
+        # print(self.y_init)
         self.x = xy_zone[0] - self.x_init
         self.y = xy_zone[1] - self.y_init 
                
@@ -138,7 +140,7 @@ class pathReader():
         self.global_path = self.read_txt(self.path_name)
         while not rospy.is_shutdown():
             # print(self.global_path)
-            print('1111')
+            # print('1111')
             self.local_path  = self.findLocalPath()
             self.global_path_pub.publish(self.global_path)
             self.local_path_pub.publish(self.local_path)

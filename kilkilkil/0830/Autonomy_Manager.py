@@ -23,11 +23,6 @@ from h_pure_pursuit import PurePursuit
 class Start_planner(PurePursuit):
     def __init__(self):       
         self.pure__init__()
-        self.astar_pub  = True
-        self.yolo_pub   = False 
-        self.gps_init   = True
-        
-        self.proj_UTM= Proj(proj='utm', zone=52, ellps='WGS84', preserve_units=False)
         
         self.main()               
                 
@@ -70,24 +65,26 @@ class Start_planner(PurePursuit):
 
         
     def main(self):
-
-        # self.cmd_pub.publish(self.ctrl_msg)
         while not rospy.is_shutdown():
-            self.ctrl_msg.steering = self.steering_angle()
-            self.ctrl_msg.velocity    = self.vel()
-            self.mode = 1 
-            print(self.ctrl_msg)
-            self.cmd_pub.publish(self.ctrl_msg)
-            self.rate.sleep()
-            # self.cmd_pub.publish(1)
             if self.local_path:
                 self.mode = 1
+                # print('111111')
                 if self.astar_path:
+                    # print('222222222222222')
                     self.mode = 2
                     dis = sqrt(pow(self.goal_pos_x - self.cur_x,2) + pow(self.goal_pos_y - self.cur_y, 2))
-                    
                     if dis <= 2:
                         self.astar_path = False
+                # else:
+                #     self.mode = 1
+            self.ctrl_msg.steering = self.steering_angle() ## deg
+            self.ctrl_msg.velocity = self.vel()
+            # print(self.ctrl_msg.velocity)
+            print('angle', self.ctrl_msg.steering)
+            # print(self.ctrl_msg)
+            self.cmd_pub.publish(self.ctrl_msg)
+            self.rate.sleep()
+            
             
             # elif self.yolo_pub:
                 # self.mode = 3
@@ -100,11 +97,9 @@ class Start_planner(PurePursuit):
             # else:
             #     # pass
             #     self.mode = 1
-            print(self.mode)
+            print('mode :', self.mode)
+            
             self.mode_pub.publish(self.mode)
-            # if self.mode ==1:
-            #     pass
-                
             
 def main(args):
 

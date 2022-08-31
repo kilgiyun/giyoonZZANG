@@ -4,7 +4,6 @@ from importlib.resources import path
 import pstats
 import sys
 
-
 from numpy import float64
 import rospy
 import rospkg
@@ -29,7 +28,7 @@ class PurePursuit:                                          #### purePursuit 알
         self.proj_UTM= Proj(proj='utm', zone=52, ellps='WGS84', preserve_units=False)
         
         self.local_status = False
-        self.astar_on     = True
+        self.astar_pub    = True
         self.is_status    = False
         self.gps_init     = True
         
@@ -47,15 +46,15 @@ class PurePursuit:                                          #### purePursuit 알
         self.max_lfd               = 30
         self.steering              = 0
         self.local_path            = 0
-        
         self.astar_path            = 0 
+        self.global_path           = 0
+        
+
         
         self.cur_x = 0
         self.cur_y = 0
         
-        self.mode = 1 
-        
-        self.global_path = 0
+        self.mode = 0
         
         self.goal_pos_x = 0
         self.goal_pos_y = 0
@@ -63,58 +62,63 @@ class PurePursuit:                                          #### purePursuit 알
         self.global_out_path = Path()
         self.local_out_path  = Path()    
         
-        self.mode = 0 
+        self.mode = 1
         
-        self.x_init = 0
-        self.y_init = 0 
-
+        self.x_init = 302473.5122667786
+        self.y_init = 4123735.6543077542
+        
+        self.des_steering = 0
+        self.des_vel      = 0
+        
         self.roll  = 0
         self.pitch = 0
         self.yaw   = 0
 
-        self.vel_x =0 
+        self.vel_x      = 0 
+        self.target_vel = 0     
         
-        
-        self.mode_pub = rospy.Publisher('/mode',Int16, queue_size=10)
-        self.cmd_pub = rospy.Publisher('/cmd',CtrlCmd, queue_size=10)
-            
         rospy.Subscriber('/local_path', Path, self.LocalCB)
         rospy.Subscriber('/astar_path', Path, self.astarCB)
         rospy.Subscriber('/gps', GPSMessage, self.gpsCB)
         rospy.Subscriber('/Ego_topic', EgoVehicleStatus, self.egoCB)
-        rospy.Subscriber('/imu', Imu, self.imuCB)
-        
-        self.main()
+        rospy.Subscriber('/imu', Imu, self.imuCB)       
+         
+        self.mode_pub = rospy.Publisher('/mode',Int16, queue_size=10)
+        self.cmd_pub  = rospy.Publisher('/cmd',CtrlCmd, queue_size=10)
+        # print('go main')
+        # self.main()
         
     def gpsCB(self, _data: GPSMessage):
         xy_zone= self.proj_UTM(_data.longitude, _data.latitude)
-        if self.gps_init:
-            self.x_init = xy_zone[0]
-            self.y_init = xy_zone[1]
-            self.gps_init = False
-            
+        
         self.x = xy_zone[0] - self.x_init
         self.y = xy_zone[1] - self.y_init
+        # print('gps on')
         
     def LocalCB(self, _data:Path):
         self.local_path = _data
         self.local_status = True
+        # print('local on')
         
-    def astarCB(self, _data:Path):    
-        self.astar_path = _data                        
-        length = len(self.astar_path.poses)
+    def astarCB(self, _data:Path):                         
+        
         if self.astar_pub:
+            self.astar_path = _data
+            length = len(self.astar_path.poses)
             self.goal_pos_x = self.astar_path.poses[length - 1].pose.position.x
             self.goal_pos_y = self.astar_path.poses[length - 1].pose.position.y
             self.astar_pub = False
+        # print('astar on')
 
     def imuCB(self, _data:Imu):
         quaternion = (_data.orientation.x, _data.orientation.y, _data.orientation.z, _data.orientation.w)
         self.roll,self.pitch,self.yaw = euler_from_quaternion(quaternion)           #### roll, pitch, yaw 로 변환
         self.is_status = True
+        # print('imu on')
         
     def egoCB(self, _data: EgoVehicleStatus):
         self.vel_x = _data.velocity.x
+        # print('ego on')
 
     def steering_angle(self): 
         self.current_position.x = self.x
@@ -125,9 +129,9 @@ class PurePursuit:                                          #### purePursuit 알
         vehicle_position            = self.current_position
         rotated_point               = Point()
         self.is_look_forward_point  = False
-
         
         if self.local_status:
+            
             if self.mode == 1:
                 for k in range(len(self.local_path.poses)):
                     dx = self.local_path.poses[k].pose.position.x - vehicle_position.x ## 변위
@@ -139,9 +143,8 @@ class PurePursuit:                                          #### purePursuit 알
                     if rotated_point.x > 0 :
                         dis = sqrt(pow(rotated_point.x,2) + pow(rotated_point.y,2))  
                         if dis >= self.lfd :     
-                        
                             self.lfd = current_vel * 0.65    
-                            
+    
                             if self.lfd < self.min_lfd :   
                                 self.lfd = self.min_lfd
 
@@ -156,11 +159,12 @@ class PurePursuit:                                          #### purePursuit 알
                         
                 theta=atan2(rotated_point.y,rotated_point.x)
                 
-                self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)*180/pi   #### 추종 각도 
+                self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)   #### 추종 각도 
                 
                 return self.steering                                                        #### Steering 반환 
       
             elif self.mode == 2:
+                print('astar')
                 for l in range(len(self.astar_path.poses)):
                     dx = self.astar_path.poses[l].pose.position.x - vehicle_position.x ## 변위
                     dy = self.astar_path.poses[l].pose.position.y - vehicle_position.y ## 변위
@@ -170,6 +174,7 @@ class PurePursuit:                                          #### purePursuit 알
 
                     if rotated_point.x > 0 :
                         dis = sqrt(pow(rotated_point.x,2) + pow(rotated_point.y,2))
+                        
                         if dis >= self.lfd :     
                             self.lfd = current_vel * 0.65
                             if self.lfd < self.min_lfd :   
@@ -183,7 +188,7 @@ class PurePursuit:                                          #### purePursuit 알
     
                 theta=atan2(rotated_point.y,rotated_point.x)
                 
-                self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)*180/pi   #### 추종 각도 )
+                self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)   #### 추종 각도 )
                 
                 return self.steering                                                        #### Steering 반환 
             else:
@@ -194,28 +199,23 @@ class PurePursuit:                                          #### purePursuit 알
         return target_vel
 
     def vel(self):
-        steering_angle = self.steering_angle() 
-        
-        target_vel = 0
-        if type(steering_angle)==float:
-            self.ctrl_msg.steering = (-steering_angle) * pi /180
-            # print('target angle:', self.ctrl_msg.steering)
-        if self.is_status:
-            if self.ctrl_msg.steering > abs(0.4):
-                target_vel = self.goal_vel(7)
-            elif self.ctrl_msg.steering > abs(0.6):
-                target_vel = self.goal_vel(7)
-            elif self.ctrl_msg.steering > abs(0.8):         
-                target_vel = self.goal_vel(7)
-            else:
-                target_vel = self.goal_vel(20)
-                
-        # print('target vel: ',target_vel)
-        return target_vel
+        if type(self.ctrl_msg.steering)==float:
+            self.ctrl_msg.steering = (-self.ctrl_msg.steering) * pi /180
+            if self.is_status:
+                if self.ctrl_msg.steering > abs(0.4):
+                    self.target_vel = self.goal_vel(5)
+                elif self.ctrl_msg.steering > abs(0.6):
+                    self.target_vel = self.goal_vel(5)
+                elif self.ctrl_msg.steering > abs(0.8):         
+                    self.target_vel = self.goal_vel(5)
+                else:
+                    self.target_vel = self.goal_vel(5)
+                    
+        return self.target_vel
     
-    def main(self):
+    def main_pure(self):
         pass
-
+            
 def main(args):
 
     rospy.init_node('path_reader', anonymous=False)

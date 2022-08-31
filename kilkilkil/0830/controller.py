@@ -29,7 +29,7 @@ class velocity_PidController :                                                  
         self.vel_d_gain      = 0.00    # 0.05                                               #### d 가 높으면 안정성이 높아짐 
         
         self.angle_p_gain    = 0.5
-        self.angle_i_gain    = 0.001
+        self.angle_i_gain    = 0.01
         self.angle_d_gain    = 0.00
         self.controlTime = 0.01
         self.vel_prev_error  = 0
@@ -80,8 +80,10 @@ class velocity_PidController :                                                  
 
     def cmdCB(self, _data:CtrlCmd):
         self.target_vel = _data.velocity
+        # print('?',_data.velocity)
         self.steering   = _data.steering
-        
+        # print('angle:', self.steering)     
+          
     def egoCB(self, _data: EgoVehicleStatus):
         self.vel_x = _data.velocity.x
         self.cur_steering = (_data.wheel_angle) * self.deg2rad
@@ -90,7 +92,6 @@ class velocity_PidController :                                                  
         ############ego_topic###########3
         error           = self.target_vel - self.vel_x  
         ####################################
-        # print('error:', round(error,2))
         p_control           = self.vel_p_gain * error
         self.vel_i_control += self.vel_i_gain * error * self.controlTime
         d_control           = self.vel_d_gain * (error - self.vel_prev_error) / self.controlTime
@@ -156,17 +157,13 @@ class velocity_PidController :                                                  
         _temp = 0
         
         while not rospy.is_shutdown():
-            vel_input = self.vel_pid()
+            # print('des_steering : {0}, cur_steering : {1}'.format(self.steering, self.cur_steering))
             vel_input = self.vel_smc(self.vel_x, self.target_vel)
-            # print('target: {0}, current: {1}'.format(vel_input, self.vel_x))
             angle_input = self.angle_pid()
-            # print('target: {0}, current: {1}'.format(angle_input, self.yaw))
             
             _temp = angle_input
-            # self.ctrl_msg.steering = self.steering
-            self.ctrl_msg.steering = angle_input
-            
-            # print("1 : {0}, 2 : {1}".format(_temp, self.steering))
+            # self.ctrl_msg.steering = angle_input
+            self.ctrl_msg.steering = - angle_input
         
             if vel_input > 0:                                   
                 self.ctrl_msg.accel = vel_input                 
@@ -175,7 +172,7 @@ class velocity_PidController :                                                  
                 self.ctrl_msg.accel = 0
                 self.ctrl_msg.brake = -vel_input 
             
-            # print(self.ctrl_msg)
+            print(self.ctrl_msg)
             self.ctrl_pub.publish(self.ctrl_msg) 
             self.rate.sleep()
 
