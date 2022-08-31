@@ -48,13 +48,9 @@ class PurePursuit:                                          #### purePursuit 알
         self.local_path            = 0
         self.astar_path            = 0 
         self.global_path           = 0
-        
-
-        
+    
         self.cur_x = 0
         self.cur_y = 0
-        
-        self.mode = 0
         
         self.goal_pos_x = 0
         self.goal_pos_y = 0
@@ -85,8 +81,6 @@ class PurePursuit:                                          #### purePursuit 알
          
         self.mode_pub = rospy.Publisher('/mode',Int16, queue_size=10)
         self.cmd_pub  = rospy.Publisher('/cmd',CtrlCmd, queue_size=10)
-        # print('go main')
-        # self.main()
         
     def gpsCB(self, _data: GPSMessage):
         xy_zone= self.proj_UTM(_data.longitude, _data.latitude)
@@ -131,7 +125,6 @@ class PurePursuit:                                          #### purePursuit 알
         self.is_look_forward_point  = False
         
         if self.local_status:
-            
             if self.mode == 1:
                 for k in range(len(self.local_path.poses)):
                     dx = self.local_path.poses[k].pose.position.x - vehicle_position.x ## 변위
@@ -160,7 +153,7 @@ class PurePursuit:                                          #### purePursuit 알
                 theta=atan2(rotated_point.y,rotated_point.x)
                 
                 self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)   #### 추종 각도 
-                
+                print('local:', self.steering)
                 return self.steering                                                        #### Steering 반환 
       
             elif self.mode == 2:
@@ -200,9 +193,9 @@ class PurePursuit:                                          #### purePursuit 알
 
     def vel(self):
         if type(self.ctrl_msg.steering)==float:
-            self.ctrl_msg.steering = (-self.ctrl_msg.steering) * pi /180
+            self.ctrl_msg.steering = (-self.ctrl_msg.steering)
             if self.is_status:
-                if self.ctrl_msg.steering > abs(0.4):
+                if self.ctrl_msg.steering > abs(0.3):
                     self.target_vel = self.goal_vel(5)
                 elif self.ctrl_msg.steering > abs(0.6):
                     self.target_vel = self.goal_vel(5)

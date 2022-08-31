@@ -28,10 +28,10 @@ class velocity_PidController :                                                  
         self.vel_i_gain      = 0.01     # 0.0                                              #### i 가 높으면 목표까지 가는 시간 단축, but 불안정해질 수 있음 (우리가 배운 overshoot 발생)
         self.vel_d_gain      = 0.00    # 0.05                                               #### d 가 높으면 안정성이 높아짐 
         
-        self.angle_p_gain    = 0.5
+        self.angle_p_gain    = 0.7
         self.angle_i_gain    = 0.01
         self.angle_d_gain    = 0.00
-        self.controlTime = 0.01
+        self.controlTime     = 0.01
         self.vel_prev_error  = 0
         self.vel_i_control   = 0
         
@@ -43,8 +43,8 @@ class velocity_PidController :                                                  
         self.yaw = 0
         self.yawrate = 0
         
-        self.target_vel = 0
-        self.steering   = 0
+        self.target_vel     = 0
+        self.des_steering   = 0
         
         self.cur_steering = 0
         
@@ -81,7 +81,7 @@ class velocity_PidController :                                                  
     def cmdCB(self, _data:CtrlCmd):
         self.target_vel = _data.velocity
         # print('?',_data.velocity)
-        self.steering   = _data.steering
+        self.des_steering   = _data.steering
         # print('angle:', self.steering)     
           
     def egoCB(self, _data: EgoVehicleStatus):
@@ -89,18 +89,16 @@ class velocity_PidController :                                                  
         self.cur_steering = (_data.wheel_angle) * self.deg2rad
         
     def vel_pid(self):
-        ############ego_topic###########3
-        error           = self.target_vel - self.vel_x  
-        ####################################
-        p_control           = self.vel_p_gain * error
-        self.vel_i_control += self.vel_i_gain * error * self.controlTime
-        d_control           = self.vel_d_gain * (error - self.vel_prev_error) / self.controlTime
-        output              = p_control + self.vel_i_control + d_control
-        self.vel_prev_error = error
+        error                   = self.target_vel - self.vel_x  
+        p_control               = self.vel_p_gain * error
+        self.vel_i_control      += self.vel_i_gain * error * self.controlTime
+        d_control               = self.vel_d_gain * (error - self.vel_prev_error) / self.controlTime
+        output                  = p_control + self.vel_i_control + d_control
+        self.vel_prev_error     = error
         return output
     
     def angle_pid(self):
-        error                   = self.steering - self.cur_steering  
+        error                   = self.des_steering - self.cur_steering  
         p_control               = self.angle_p_gain * error
         self.angle_i_control    += self.angle_i_gain * error * self.controlTime
         d_control               = self.angle_d_gain * (error - self.angle_prev_error) / self.controlTime
@@ -163,7 +161,7 @@ class velocity_PidController :                                                  
             
             _temp = angle_input
             # self.ctrl_msg.steering = angle_input
-            self.ctrl_msg.steering = - angle_input
+            self.ctrl_msg.steering = angle_input
         
             if vel_input > 0:                                   
                 self.ctrl_msg.accel = vel_input                 

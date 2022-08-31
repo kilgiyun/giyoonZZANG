@@ -19,8 +19,9 @@ from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from pyproj import Proj
 
 from h_pure_pursuit import PurePursuit
+from h_yolo import Yolo
 
-class Start_planner(PurePursuit):
+class Start_planner(PurePursuit, Yolo):
     def __init__(self):       
         self.pure__init__()
         
@@ -66,6 +67,9 @@ class Start_planner(PurePursuit):
         
     def main(self):
         while not rospy.is_shutdown():
+            self.ctrl_msg.steering = self.steering_angle() ## deg
+            self.ctrl_msg.velocity = self.vel()
+
             if self.local_path:
                 self.mode = 1
                 # print('111111')
@@ -77,12 +81,14 @@ class Start_planner(PurePursuit):
                         self.astar_path = False
                 # else:
                 #     self.mode = 1
-            self.ctrl_msg.steering = self.steering_angle() ## deg
-            self.ctrl_msg.velocity = self.vel()
+            # self.ctrl_msg.steering = self.steering_angle() ## deg
+            # self.ctrl_msg.velocity = self.vel()
             # print(self.ctrl_msg.velocity)
             print('angle', self.ctrl_msg.steering)
-            # print(self.ctrl_msg)
+            print('mode :', self.mode)
             self.cmd_pub.publish(self.ctrl_msg)
+            self.mode_pub.publish(self.mode)
+            
             self.rate.sleep()
             
             
@@ -97,9 +103,8 @@ class Start_planner(PurePursuit):
             # else:
             #     # pass
             #     self.mode = 1
-            print('mode :', self.mode)
             
-            self.mode_pub.publish(self.mode)
+            
             
 def main(args):
 
