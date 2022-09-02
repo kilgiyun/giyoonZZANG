@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from importlib.resources import path
+from pickle import NONE
 import pstats
 import sys
 
@@ -25,38 +26,52 @@ class Yolo:
     def yolo__init__(self):
         
         self.yolo_pub = True
+        self.yolo_off = True  
         
+        self.yolo_data = 0
+        self.yolo_vel = 0
         self.ctrl_msg = CtrlCmd()
-        rospy.Subscriber('//yolov5/image_out', BoundingBoxes, self.yoloCB)
+        rospy.Subscriber('/yolov5/detections', BoundingBoxes, self.yoloCB)
     
     def yoloCB(self, _data: BoundingBoxes):
-                                        
-        if self.yolo_pub and _data.bounding_boxes[0].Class:
+        # print(len(_data.bounding_boxes)==0)
+        # print(type(len(_data.bounding_boxes)==0))
+        self.yolo_data = _data.bounding_boxes
+        if len(self.yolo_data) == 0:
+            self.yolo_off = True  
+            print('yolo_offffff')
+            # print(self.yolo_status)                       
+        elif self.yolo_pub and len(self.yolo_data) > 0:
+            self.yolo_off = False
+            print('yolo_onnnnnnnc')
             Class = _data.bounding_boxes[0].Class 
-            if Class == "red":                        #### 빨간불이면 엑셀:0 , 브레이크: 1
-                print("red")
-                self.ctrl_msg.accel = 0
-                self.ctrl_msg.brake = 1
-                
-            elif Class == "Yellow":      
-                print("yellow")
-                self.ctrl_msg.accel = 0
-                self.ctrl_msg.brake = 1
-                
-            elif Class == "left":       
-                print("left")
-                # if 내 앞 좌표 3~5개가 좌회전 하는 path라면 gogo
-                self.ctrl_msg.accel = 0
-                self.ctrl_msg.brake = 1        
-                
-            elif Class == "straight":
-                print("straight")
+            if Class == "4_red":                        #### 빨간불이면 엑셀:0 , 브레이크: 1
+                # print("red")
+                self.yolo_vel = 0
+            elif Class == "4_green":
                 pass
-            elif Class == "left_straight":
-                print("left_straight")
-                pass
+        
+        else:
+            pass
+        #     elif Class == "Yellow":      
+        #         print("yellow")
+        #         self.ctrl_msg.accel = 0
+        #         self.ctrl_msg.brake = 1
+                
+        #     elif Class == "left":       
+        #         print("left")
+        #         # if 내 앞 좌표 3~5개가 좌회전 하는 path라면 gogo
+        #         self.ctrl_msg.accel = 0
+        #         self.ctrl_msg.brake = 1        
+                
+        #     elif Class == "straight":
+        #         print("straight")
+        #         pass
+        #     elif Class == "left_straight":
+        #         print("left_straight")
+        #         pass
             
-        self.yolo_pub = False
+        # self.yolo_pub = False
         
         return self.ctrl_msg
     

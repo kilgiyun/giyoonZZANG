@@ -153,11 +153,11 @@ class PurePursuit:                                          #### purePursuit 알
                 theta=atan2(rotated_point.y,rotated_point.x)
                 
                 self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)   #### 추종 각도 
-                print('local:', self.steering)
+                # print('local:', self.steering)
                 return self.steering                                                        #### Steering 반환 
       
             elif self.mode == 2:
-                print('astar')
+                # print('astar')
                 for l in range(len(self.astar_path.poses)):
                     dx = self.astar_path.poses[l].pose.position.x - vehicle_position.x ## 변위
                     dy = self.astar_path.poses[l].pose.position.y - vehicle_position.y ## 변위

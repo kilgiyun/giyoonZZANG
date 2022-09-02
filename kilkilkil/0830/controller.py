@@ -31,6 +31,7 @@ class velocity_PidController :                                                  
         self.angle_p_gain    = 0.7
         self.angle_i_gain    = 0.01
         self.angle_d_gain    = 0.00
+        
         self.controlTime     = 0.01
         self.vel_prev_error  = 0
         self.vel_i_control   = 0
@@ -119,14 +120,14 @@ class velocity_PidController :                                                  
         return _result
     
     def vel_smc(self, cur_vel, des_vel):
-        _result = .0
-        _lambda = 1
-        _dt = 0.01
-        _e_filtered = 0
-        _wn = 2
-        _k1 = 1
-        _eps = 1e-3
-        _delta_hat = 0.1
+        _result = .0            ### .0
+        _lambda = 1             ### 1
+        _dt = 0.01              ### 0.01
+        _e_filtered = 0         ### 0
+        _wn = 2                 ### 2
+        _k1 = 1                 ### 1
+        _eps = 1e-3             ### 1e-3
+        _delta_hat = 0.1        ### 0.1
         
         e1 = des_vel - self.filtered_des_v
         
