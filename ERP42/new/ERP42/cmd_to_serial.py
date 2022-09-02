@@ -3,6 +3,9 @@ import rospy
 import serial
 import time
 import numpy
+import os
+import sys
+
 from geometry_msgs.msg import Twist
 from autonomy_msgs.msg import ERP42_mode
 from std_msgs.msg import Float64,Int16
@@ -160,6 +163,7 @@ if __name__ == '__main__':
     try:
         print("cmd_vel_to_serial")
         my_car = Car()
+        os.system('rosbag record -a')
     except rospy.ROSInterruptException:
         print("serial Close")
         ser.close()  
