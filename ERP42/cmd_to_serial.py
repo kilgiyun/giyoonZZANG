@@ -5,7 +5,7 @@ import time
 import numpy
 from geometry_msgs.msg import Twist
 from autonomy_msgs.msg import ERP42_mode
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64,Int16
 from morai_msgs.msg import CtrlCmd,EgoVehicleStatus
 
 bytesize=serial.EIGHTBITS,
@@ -14,7 +14,7 @@ stopbits = serial.STOPBITS_ONE,
 xonxoff = False
 ser = serial.Serial()
 ser.baudrate = 115200
-ser.port = '/dev/ttyUSB0'
+ser.port = '/dev/ttyUSB2'
 ser.open()
 
 #now cmd_vel.linear.x = 1
@@ -23,17 +23,11 @@ ser.open()
 class Car:
 
     def __init__(self, speed=0, steer1=0, steer0=0, vel=0, direction=0):
-        #Sub
-        rospy.init_node("cmd_vel_to_serial", anonymous=True)
-        rospy.Subscriber('/ctrl_cmd', CtrlCmd ,self.cmd_vel_callback)
-            
-        #Pub
-        self.vel_pub=rospy.Publisher('/linear_vel',EgoVehicleStatus, queue_size=1)
-        self.rate=rospy.Rate(10)
-            
+       
         if ser.isOpen():
             print(ser.name + ' is connected...')
             print("Serial details parameters: ", ser)
+        
         self.speed = speed
         self.steer1 = steer1
         self.steer0 = steer0
@@ -45,14 +39,23 @@ class Car:
         
         # self.vel_sub = rospy.Subscriber("/cmd_vel", Twist, self.cmd_vel_callback)
         # self.erp_mode_sub = rospy.Subscriber("/vehicle_mode", ERP42_mode, self.erp_mode_callback)
-        self.rate = rospy.Rate(1)
+         #Sub
+        rospy.init_node("cmd_vel_to_serial", anonymous=True)
+        rospy.Subscriber('/ctrl_cmd', CtrlCmd ,self.cmd_vel_callback)
+        self.rate = rospy.Rate(10)    
+        
+        #Pub
+        self.vel_pub=rospy.Publisher('/linear_vel',EgoVehicleStatus, queue_size=1)
+        self.rate=rospy.Rate(10)
+            
+        
         self.send_serial()
 
     def cmd_vel_callback(self, data:CtrlCmd):
         
-        # self.vel = int(data.accel * 3.6) # m/s to kph
-        self.vel = 1 * 3.6 # m/s to kph
-        # self.dir = int(round(data.angular.z * 57.3 * 30)) # radian to degree to dir
+        self.vel = int(data.accel * 3.6)                        ### controller 에서 속도 받아오기 m/s to kph
+        # self.vel = 1 * 3.6 # m/s to kph                       ### 속도 고정
+        
         self.dir = int(round(data.steering * 57.3 * 30))
         # print("vel / dir {} {}".format(self.vel, self.dir))
         
