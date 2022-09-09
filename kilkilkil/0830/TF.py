@@ -80,22 +80,22 @@ class TF():
                             "imu", # 아들
                             "/base_link") # 아엄 
             
-            br.sendTransform((3.85, 0, 0.3),
+            br.sendTransform((3.95, 0, 0.6),
                             tf.transformations.quaternion_from_euler(0, 0, 3.14),
                             rospy.Time.now(),
-                            "velodyne", # 아들
+                            "Camera", # 아들
                             "/base_link") # 아엄 
             
-            br.sendTransform((3.85, 0, 0.3),
-                            tf.transformations.quaternion_from_euler(0, 0, 3.14),
-                            rospy.Time.now(),
-                            "laser_mount_link", # 아들
-                            "/base_link") # 아엄 
-            # br.sendTransform((3.9, 0, 0.4),
-            #                 tf.transformations.quaternion_from_euler(0, 0, 0),
+            # br.sendTransform((3.85, 0, 0.3),
+            #                 tf.transformations.quaternion_from_euler(0, 0, 3.14),
             #                 rospy.Time.now(),
-            #                 "1", # 아들
+            #                 "laser_mount_link", # 아들
             #                 "/base_link") # 아엄 
+            br.sendTransform((3.9, 0, 0.4),
+                            tf.transformations.quaternion_from_euler(0, 0, 0),
+                            rospy.Time.now(),
+                            "1", # 아들
+                            "/base_link") # 아엄 
 
             self.rate.sleep()
 

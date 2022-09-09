@@ -30,12 +30,16 @@ class Start_planner(PurePursuit, Yolo):
                 self.mode = 1
                 if self.astar_path:
                     self.mode = 2
+                    # print('umm', self.goal_pos_x, self.goal_pos_y)
+                    # print('cur', self.x, self.y)
                     dis = sqrt(pow(self.goal_pos_x - self.cur_x,2) + pow(self.goal_pos_y - self.cur_y, 2))
+                    # print("dis:", dis)
+                    # print('==============================')
                     if dis <= 2:
                         self.astar_path = False
-
-            print(self.mode)
-            print(self.ctrl_msg)
+                        
+            # print(self.mode)
+            # print(self.ctrl_msg)
             self.cmd_pub.publish(self.ctrl_msg)
             self.mode_pub.publish(self.mode)
             

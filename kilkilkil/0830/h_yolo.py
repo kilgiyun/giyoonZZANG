@@ -1,26 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from importlib.resources import path
-from pickle import NONE
-import pstats
 import sys
-
-from numpy import float64
 import rospy
-import rospkg
-from nav_msgs.msg import Path,Odometry
-from sensor_msgs.msg import Imu
-from geometry_msgs.msg import PoseStamped,Point
-from morai_msgs.msg import EgoVehicleStatus,CtrlCmd, GPSMessage
-from std_msgs.msg import Float64,Int16,Float32MultiArray
+
+from morai_msgs.msg import CtrlCmd
 from detection_msgs.msg import BoundingBoxes
-from std_srvs.srv import SetBool, SetBoolRequest
 
 from math import cos,sin,sqrt,pow,atan2,pi
-import tf
-from tf.transformations import euler_from_quaternion, quaternion_from_euler
-from pyproj import Proj
-from std_msgs.msg import Float32MultiArray
 
 class Yolo:                                        
     def yolo__init__(self):
@@ -28,27 +14,47 @@ class Yolo:
         self.yolo_pub = True
         self.yolo_off = True  
         
-        self.yolo_data = 0
         self.yolo_vel = 0
         self.ctrl_msg = CtrlCmd()
         rospy.Subscriber('/yolov5/detections', BoundingBoxes, self.yoloCB)
+        
+    def box_size(self, x1, x2, y1, y2):
+        return ((x2 - x1) *(y2 - y1))
     
     def yoloCB(self, _data: BoundingBoxes):
         # print(len(_data.bounding_boxes)==0)
         # print(type(len(_data.bounding_boxes)==0))
-        self.yolo_data = _data.bounding_boxes
-        if len(self.yolo_data) == 0:
+        
+        
+        size = []
+        for i in range(len(_data.bounding_boxes)):
+            xmax = _data.bounding_boxes[i].xmax
+            xmin = _data.bounding_boxes[i].xmin
+            ymax = _data.bounding_boxes[i].ymax
+            ymin = _data.bounding_boxes[i].ymin
+        
+            size.append(self.box_size(xmin, xmax, ymin, ymax))
+            
+        # print(size)
+        # print(size.index(max(size)))
+        max_index = size.index(max(size))
+        # print(max_index)
+        
+        _yolo_data = _data.bounding_boxes[max_index].Class
+        
+        print(_yolo_data)
+        
+        if len(_yolo_data) == 0:
             self.yolo_off = True  
-            print('yolo_offffff')
+            # print('yolo_offffff')
             # print(self.yolo_status)                       
-        elif self.yolo_pub and len(self.yolo_data) > 0:
+        elif self.yolo_pub and len(_yolo_data) > 0:
             self.yolo_off = False
-            print('yolo_onnnnnnnc')
-            Class = _data.bounding_boxes[0].Class 
-            if Class == "4_red":                        #### 빨간불이면 엑셀:0 , 브레이크: 1
+            # print('yolo_onnnnnnnc')
+            if _yolo_data == "4_red":                        #### 빨간불이면 엑셀:0 , 브레이크: 1
                 # print("red")
                 self.yolo_vel = 0
-            elif Class == "4_green":
+            elif _yolo_data == "4_green":
                 pass
         
         else:

@@ -28,7 +28,7 @@ class velocity_PidController :                                                  
         self.vel_i_gain      = 0.01     # 0.0                                              #### i 가 높으면 목표까지 가는 시간 단축, but 불안정해질 수 있음 (우리가 배운 overshoot 발생)
         self.vel_d_gain      = 0.00    # 0.05                                               #### d 가 높으면 안정성이 높아짐 
         
-        self.angle_p_gain    = 0.7
+        self.angle_p_gain    = 0.45
         self.angle_i_gain    = 0.01
         self.angle_d_gain    = 0.00
         
@@ -84,9 +84,10 @@ class velocity_PidController :                                                  
         # print('?',_data.velocity)
         self.des_steering   = _data.steering
         # print('angle:', self.steering)     
-          
+        
     def egoCB(self, _data: EgoVehicleStatus):
         self.vel_x = _data.velocity.x
+        # print(self.vel_x)
         self.cur_steering = (_data.wheel_angle) * self.deg2rad
         
     def vel_pid(self):
@@ -141,7 +142,7 @@ class velocity_PidController :                                                  
         s = e + (_k1 * self.e_int)
         
         _sat = s / _eps
-         
+        
         if abs(_sat) > 1:
             if _sat < 0:
                 _sat = -1
@@ -157,6 +158,7 @@ class velocity_PidController :                                                  
         
         while not rospy.is_shutdown():
             # print('des_steering : {0}, cur_steering : {1}'.format(self.steering, self.cur_steering))
+            
             vel_input = self.vel_smc(self.vel_x, self.target_vel)
             angle_input = self.angle_pid()
             
@@ -173,6 +175,7 @@ class velocity_PidController :                                                  
             
             print(self.ctrl_msg)
             self.ctrl_pub.publish(self.ctrl_msg) 
+            
             self.rate.sleep()
 
 def main(args):

@@ -7,19 +7,17 @@ import sys
 from numpy import float64
 import rospy
 import rospkg
-from nav_msgs.msg import Path,Odometry
+from nav_msgs.msg import Path
 from sensor_msgs.msg import Imu
-from geometry_msgs.msg import PoseStamped,Point
+from geometry_msgs.msg import Point
 from morai_msgs.msg import EgoVehicleStatus,CtrlCmd, GPSMessage
-from std_msgs.msg import Float64,Int16,Float32MultiArray
-from detection_msgs.msg import BoundingBoxes
-from std_srvs.srv import SetBool, SetBoolRequest
+from std_msgs.msg import Int16
+
 
 from math import cos,sin,sqrt,pow,atan2,pi
 import tf
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from pyproj import Proj
-from std_msgs.msg import Float32MultiArray
 
 class PurePursuit:                                          #### purePursuit 알고리즘 적용 ##
     def pure__init__(self):
@@ -78,15 +76,15 @@ class PurePursuit:                                          #### purePursuit 알
         rospy.Subscriber('/gps', GPSMessage, self.gpsCB)
         rospy.Subscriber('/Ego_topic', EgoVehicleStatus, self.egoCB)
         rospy.Subscriber('/imu', Imu, self.imuCB)       
-         
+        
         self.mode_pub = rospy.Publisher('/mode',Int16, queue_size=10)
         self.cmd_pub  = rospy.Publisher('/cmd',CtrlCmd, queue_size=10)
         
     def gpsCB(self, _data: GPSMessage):
         xy_zone= self.proj_UTM(_data.longitude, _data.latitude)
         
-        self.x = xy_zone[0] - self.x_init
-        self.y = xy_zone[1] - self.y_init
+        self.cur_x = xy_zone[0] - self.x_init
+        self.cur_y = xy_zone[1] - self.y_init
         # print('gps on')
         
     def LocalCB(self, _data:Path):
@@ -99,10 +97,12 @@ class PurePursuit:                                          #### purePursuit 알
         if self.astar_pub:
             self.astar_path = _data
             length = len(self.astar_path.poses)
-            self.goal_pos_x = self.astar_path.poses[length - 1].pose.position.x
-            self.goal_pos_y = self.astar_path.poses[length - 1].pose.position.y
+            self.goal_pos_x = self.astar_path.poses[length - 2].pose.position.x
+            self.goal_pos_y = self.astar_path.poses[length - 2].pose.position.y
             self.astar_pub = False
+    
         # print('astar on')
+        # print(len(self.astar_path.poses))
 
     def imuCB(self, _data:Imu):
         quaternion = (_data.orientation.x, _data.orientation.y, _data.orientation.z, _data.orientation.w)
@@ -115,8 +115,8 @@ class PurePursuit:                                          #### purePursuit 알
         # print('ego on')
 
     def steering_angle(self): 
-        self.current_position.x = self.x
-        self.current_position.y = self.y
+        self.current_position.x = self.cur_x
+        self.current_position.y = self.cur_y
         current_vel             = self.vel_x
         vehicle_yaw             = self.yaw
 
@@ -155,10 +155,12 @@ class PurePursuit:                                          #### purePursuit 알
                 self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)   #### 추종 각도 
                 # print('local:', self.steering)
                 return self.steering                                                        #### Steering 반환 
-      
+
             elif self.mode == 2:
                 # print('astar')
-                for l in range(len(self.astar_path.poses)):
+                # print(len(self.astar_path.poses))
+                for l in range(0, len(self.astar_path.poses)):
+                    # print(l)
                     dx = self.astar_path.poses[l].pose.position.x - vehicle_position.x ## 변위
                     dy = self.astar_path.poses[l].pose.position.y - vehicle_position.y ## 변위
 
@@ -178,15 +180,17 @@ class PurePursuit:                                          #### purePursuit 알
                             self.is_look_forward_point = True
                             
                             break
-    
+                    if l >= len(self.astar_path.poses):
+                        break
                 theta=atan2(rotated_point.y,rotated_point.x)
                 
-                self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)   #### 추종 각도 )
+                self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)   #### 추종 각도 
                 
-                return self.steering                                                        #### Steering 반환 
+                return self.steering     
+            
             else:
                 pass
-               
+            
     def goal_vel(self, target_vel_m):          #### km/h -> m/s 해주는 함수
         target_vel = target_vel_m * (1000/3600)
         return target_vel
@@ -196,13 +200,13 @@ class PurePursuit:                                          #### purePursuit 알
             self.ctrl_msg.steering = (-self.ctrl_msg.steering)
             if self.is_status:
                 if self.ctrl_msg.steering > abs(0.3):
-                    self.target_vel = self.goal_vel(5)
+                    self.target_vel = self.goal_vel(13)
                 elif self.ctrl_msg.steering > abs(0.6):
-                    self.target_vel = self.goal_vel(5)
+                    self.target_vel = self.goal_vel(10)
                 elif self.ctrl_msg.steering > abs(0.8):         
-                    self.target_vel = self.goal_vel(5)
+                    self.target_vel = self.goal_vel(8)
                 else:
-                    self.target_vel = self.goal_vel(5)
+                    self.target_vel = self.goal_vel(15)
                     
         return self.target_vel
     
