@@ -200,14 +200,14 @@ class PurePursuit:                                          #### purePursuit 알
             self.ctrl_msg.steering = (-self.ctrl_msg.steering)
             if self.is_status:
                 if self.ctrl_msg.steering > abs(0.3):
-                    self.target_vel = self.goal_vel(13)
+                    self.target_vel = self.goal_vel(11)
                 elif self.ctrl_msg.steering > abs(0.6):
-                    self.target_vel = self.goal_vel(10)
-                elif self.ctrl_msg.steering > abs(0.8):         
                     self.target_vel = self.goal_vel(8)
+                elif self.ctrl_msg.steering > abs(0.8):         
+                    self.target_vel = self.goal_vel(5)
                 else:
                     self.target_vel = self.goal_vel(15)
-                    
+
         return self.target_vel
     
     def main_pure(self):
