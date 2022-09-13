@@ -6,14 +6,11 @@ import sys
 import rospy
 import rospkg
 
-from nav_msgs.msg import Path,Odometry
+from nav_msgs.msg import Path
 from sensor_msgs.msg import Imu
 from geometry_msgs.msg import PoseStamped,Point
-from morai_msgs.msg import EgoVehicleStatus,CtrlCmd, GPSMessage
-from std_msgs.msg import Float64,Int16,Float32MultiArray
-from detection_msgs.msg import BoundingBoxes
-from tf2_msgs.msg import TFMessage
-from std_srvs.srv import SetBool, SetBoolRequest
+from morai_msgs.msg import GPSMessage
+from std_msgs.msg import Int16
 
 from math import cos,sin,sqrt,pow,atan2,pi
 import tf
@@ -48,12 +45,14 @@ class pathReader():
         self.roll   = 0
         self.pitch  = 0
         self.yaw    = 0
-         
+        
         self.x = 0
         self.y = 0
         
         self.global_path_pub = rospy.Publisher('/global_path', Path, queue_size=1)
-        self.local_path_pub  = rospy.Publisher('/local_path',Path, queue_size=1)        
+        self.local_path_pub  = rospy.Publisher('/local_path',Path, queue_size=1)    
+        self.waypoint_pub = rospy.Publisher('/waypoint',Int16, queue_size=10)
+            
         rospy.Subscriber('/gps', GPSMessage, self.gpsCB)
         rospy.Subscriber('/imu', Imu, self.imuCB)        
         self.main()
@@ -69,7 +68,7 @@ class pathReader():
         # print(self.y_init)
         self.x = xy_zone[0] - self.x_init
         self.y = xy_zone[1] - self.y_init 
-               
+
     def imuCB(self, _data:Imu):
         quaternion = (_data.orientation.x, _data.orientation.y, _data.orientation.z, _data.orientation.w)
         self.roll,self.pitch,self.yaw = euler_from_quaternion(quaternion)           #### roll, pitch, yaw 로 변환
@@ -99,8 +98,7 @@ class pathReader():
     
     def findLocalPath(self):
         out_path = Path()    
-        
-        # rospy.sleep(0.1)
+
         global_len = int(len(self.global_path.poses))
         dis_array = []
         for i in range(global_len):
@@ -144,6 +142,7 @@ class pathReader():
             self.local_path  = self.findLocalPath()
             self.global_path_pub.publish(self.global_path)
             self.local_path_pub.publish(self.local_path)
+            self.waypoint_pub.publish(self.current_waypoint)
             self.rate.sleep()
             
 def main(args):
