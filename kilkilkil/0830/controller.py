@@ -11,9 +11,6 @@ from nav_msgs.msg import Path,Odometry
 from sensor_msgs.msg import Imu
 from geometry_msgs.msg import PoseStamped,Point
 from morai_msgs.msg import EgoVehicleStatus,CtrlCmd, GPSMessage
-from std_msgs.msg import Float64,Int16,Float32MultiArray
-from detection_msgs.msg import BoundingBoxes
-from std_srvs.srv import SetBool, SetBoolRequest
 
 from math import cos,sin,sqrt,pow,atan2,pi
 import tf
@@ -46,6 +43,7 @@ class velocity_PidController :                                                  
         
         self.target_vel     = 0
         self.des_steering   = 0
+        self.des_brake      = 0
         
         self.cur_steering = 0
         
@@ -83,6 +81,7 @@ class velocity_PidController :                                                  
         self.target_vel = _data.velocity
         # print('?',_data.velocity)
         self.des_steering   = _data.steering
+        self.des_brake  = _data.brake
         # print('angle:', self.steering)     
         
     def egoCB(self, _data: EgoVehicleStatus):
@@ -162,8 +161,6 @@ class velocity_PidController :                                                  
             vel_input = self.vel_smc(self.vel_x, self.target_vel)
             angle_input = self.angle_pid()
             
-            _temp = angle_input
-            # self.ctrl_msg.steering = angle_input
             self.ctrl_msg.steering = angle_input
         
             if vel_input > 0:                                   
@@ -173,9 +170,19 @@ class velocity_PidController :                                                  
                 self.ctrl_msg.accel = 0
                 self.ctrl_msg.brake = -vel_input 
             
-            print(self.ctrl_msg)
-            self.ctrl_pub.publish(self.ctrl_msg) 
+            # print(self.ctrl_msg)
             
+            if self.ctrl_msg.accel >=1:
+                self.ctrl_msg.accel = 1 
+            else :
+                pass
+            
+            if self.ctrl_msg.brake >=1:
+                self.ctrl_msg.brake = 1 
+            else :
+                pass
+            
+            self.ctrl_pub.publish(self.ctrl_msg) 
             self.rate.sleep()
 
 def main(args):

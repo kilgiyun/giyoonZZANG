@@ -22,11 +22,10 @@ from pyproj import Proj
 
 class pathReader():                                         
     def __init__(self):
-        self.path_name = '0830.txt'
+        self.path_name = '0914.txt'
         rospack = rospkg.RosPack()
         self.file_path = rospack.get_path("my_test")
 
-        # self.stop_service=rospy.ServiceProxy('/stop',SetBool)
         self.close_waypoint = True
         self.gpsinit = True
                 

@@ -23,9 +23,8 @@ class Yolo:
         
         self._yolo_data = 0 
         
-        self.lines = [64, 65, 66, 67, 68, 69, 107, 108, 109, 110, 111, 112, 212, 213, 214, 215,
-                        216, 217, 218, 295, 296, 297, 298, 299, 300, 301, 302, 522, 523, 524, 525,
-                        526, 623, 624, 625, 626, 627, 628, 659, 660, 661, 662, 663]
+        self.lines = [67, 68, 69, 70, 71, 109, 110, 111, 112, 113, 114, 224, 225, 226, 308, 309, 310, 311, 312,
+                    526, 537, 538, 539, 540, 645, 646, 647, 683, 684, 685]
         
         self.yolo_vel = 0
         self.ctrl_msg = CtrlCmd()
@@ -35,7 +34,7 @@ class Yolo:
     def waypointCB(self, _data: Int16):
         self.current_waypoint =_data.data
         ####
-        # 1번째 : 64 - 69
+        # 1번째 : 69 - 71
         # 2번째 : 107- 112
         # 3번째 : 212- 218
         # 4번째 : 295 - 302
@@ -57,32 +56,30 @@ class Yolo:
                 ymin = _data.bounding_boxes[i].ymin
             
                 size.append(self.box_size(xmin, xmax, ymin, ymax))
-                
-            max_index = size.index(max(size))  
-            self._yolo_data = _data.bounding_boxes[max_index].Class
+            
+            if size:
+                max_index = size.index(max(size))  
+                self._yolo_data = _data.bounding_boxes[max_index].Class
         else:
             self._yolo_data = 0
-        
-        # print(_yolo_data)
     
     def box_size(self, x1, x2, y1, y2):
         return ((x2 - x1) *(y2 - y1))
     
     def main_yolo(self):
 
-        if self._yolo_data == '4_red' or self._yolo_data == '3_red':
-            print('reddddd')
+        if self._yolo_data == '4_red' or self._yolo_data == '3_red' or self._yolo_data == '4_yellow':
             self.red_staus   = True
             self.green_staus = False
             
-        elif self._yolo_data == '4_green' or self._yolo_data == '3_green':
-            print('grennnn')
+        elif self._yolo_data == '4_green' or self._yolo_data == '3_green' or self._yolo_data == '4_str_left' :
             self.red_staus   = False
             self.green_staus = True
         else:
-            print('nothing')
-            self.red_staus   = False
-            self.green_staus = False
+            pass
+        
+        # print('red', self.red_staus)
+        # print('green', self.green_staus)
         
 def main(args):
 
