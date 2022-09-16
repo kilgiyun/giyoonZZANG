@@ -23,8 +23,8 @@ class Yolo:
         
         self._yolo_data = 0 
         
-        self.lines = [67, 68, 69, 70, 71, 109, 110, 111, 112, 113, 114, 224, 225, 226, 308, 309, 310, 311, 312,
-                    526, 537, 538, 539, 540, 645, 646, 647, 683, 684, 685]
+        self.lines = [93, 94, 95, 96, 135, 136, 137, 138, 236, 237, 238, 239, 240, 241,
+                    323, 324, 325, 326, 550, 551, 552, 553, 554, 555, 657, 658, 659, 660, 693, 694, 695, 696]
         
         self.yolo_vel = 0
         self.ctrl_msg = CtrlCmd()
@@ -67,7 +67,8 @@ class Yolo:
         return ((x2 - x1) *(y2 - y1))
     
     def main_yolo(self):
-
+        
+        ############## Moari
         if self._yolo_data == '4_red' or self._yolo_data == '3_red' or self._yolo_data == '4_yellow':
             self.red_staus   = True
             self.green_staus = False
@@ -77,7 +78,19 @@ class Yolo:
             self.green_staus = True
         else:
             pass
+        ##############
         
+        ############## Real
+        if self._yolo_data == 'red' or self._yolo_data == 'yellow':
+            self.red_staus   = True
+            self.green_staus = False
+            
+        elif self._yolo_data == 'straight' or self._yolo_data == 'left_straight' or self._yolo_data == 'left':
+            self.red_staus   = False
+            self.green_staus = True
+        else:
+            pass
+        ##############
         # print('red', self.red_staus)
         # print('green', self.green_staus)
         

@@ -22,7 +22,18 @@ from pyproj import Proj
 
 class pathReader():                                         
     def __init__(self):
-        self.path_name = '0914.txt'
+        #### 예선
+        # self.path_name = 'preliminary_0916.txt'
+        ####
+        
+        #### 본선
+        self.path_name = 'final_0916.txt'
+        ####
+        
+        #### bag 
+        # self.path_name = 'bag04.txt'
+        ####
+        
         rospack = rospkg.RosPack()
         self.file_path = rospack.get_path("my_test")
 
@@ -108,7 +119,7 @@ class pathReader():
 
         min(dis_array)
         dis_array.index(min(dis_array))    
-        self.current_waypoint = dis_array.index(min(dis_array))
+        self.current_waypoint = dis_array.index(min(dis_array)) + 1
         print('current :', self.current_waypoint)
         
         if self.current_waypoint + 16 > len(self.global_path.poses) : #현재 웨이 포인트+50이 len(ref_path)보다 크면

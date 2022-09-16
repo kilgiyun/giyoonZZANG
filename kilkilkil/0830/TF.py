@@ -49,6 +49,7 @@ class TF():
         #     self.x_init = xy_zone[0]
         #     self.y_init = xy_zone[1]
         #     self.status = False
+        
         self.fake_x = self.x - self.x_init
         self.fake_y = self.y - self.y_init
     
@@ -80,7 +81,7 @@ class TF():
                             "imu", # 아들
                             "/base_link") # 아엄 
             
-            br.sendTransform((3.95, 0, 0.6),
+            br.sendTransform((3.95, 0, 1.01),
                             tf.transformations.quaternion_from_euler(0, 0, 3.14),
                             rospy.Time.now(),
                             "Camera", # 아들
@@ -91,6 +92,7 @@ class TF():
             #                 rospy.Time.now(),
             #                 "laser_mount_link", # 아들
             #                 "/base_link") # 아엄 
+            
             br.sendTransform((3.9, 0, 0.4),
                             tf.transformations.quaternion_from_euler(0, 0, 0),
                             rospy.Time.now(),

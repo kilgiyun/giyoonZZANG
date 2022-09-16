@@ -8,7 +8,7 @@ import rospkg
 from morai_msgs.msg  import EgoVehicleStatus, GPSMessage
 from math import pi,cos,sin,pi,sqrt,pow
 from nav_msgs.msg import Path
-import tf
+from sensor_msgs.msg import NavSatFix
 from geometry_msgs.msg import PoseStamped
 from pyproj import Proj
 from std_msgs.msg import Float64,Int16,Float32MultiArray
@@ -23,6 +23,7 @@ class test :
 
         rospy.Subscriber("/gps",GPSMessage, self.gpsCB)
 
+        # rospy.Subscriber("/ublox_gps/fix",NavSatFix, self.gpsCB)
         self.global_path_pub= rospy.Publisher('/global_path',Path, queue_size=1)
 
         self.proj_UTM= Proj(proj='utm', zone=52, ellps='WGS84', preserve_units=False)
@@ -56,7 +57,7 @@ class test :
             rate.sleep()    
 
         self.f.close()
-        
+
     def gpsCB(self, gps_msg:GPSMessage):
         self.lat=gps_msg.latitude
         self.lon=gps_msg.longitude

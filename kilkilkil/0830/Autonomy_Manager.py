@@ -20,17 +20,20 @@ class Start_planner(PurePursuit, Yolo):
     def main(self):
         while not rospy.is_shutdown():
             self.main_yolo()
-            self.ctrl_msg.steering = self.steering_angle() ## deg
+            
             
             ##########
             # print('sijac')
             if self.red_staus:
-                self.ctrl_msg.velocity = -3
+                self.ctrl_msg.steering = 0
+                self.ctrl_msg.velocity = -4
                 # self.ctrl_msg.brake = 1
             else:
+                self.ctrl_msg.steering = self.steering_angle() ## deg
                 self.ctrl_msg.velocity = self.vel()
             
             print(self.ctrl_msg.velocity)
+            print(self.current_waypoint)
             
             if self.local_path:
                 self.mode = 1
