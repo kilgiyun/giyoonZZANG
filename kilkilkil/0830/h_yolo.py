@@ -80,7 +80,7 @@ class Yolo:
                 if self._yolo_data == 'left':    
                     self.red_staus   = False
                     self.green_staus = True
-                else:
+                elif self._yolo_data == 'red' or self._yolo_data == 'yellow' or self._yolo_data == 'straight' or self._yolo_data == 'left_straight':
                     self.red_staus   = True
                     self.green_staus = False
                     
@@ -104,7 +104,7 @@ class Yolo:
                 if self._yolo_data == '4_red':    
                     self.red_staus   = False
                     self.green_staus = True
-                else:
+                elif self._yolo_data == '4_yellow' or self._yolo_data == '4_green' or self._yolo_data == '4_left'or self._yolo_data == '4_str_left'or self._yolo_data == '4_yel_green'or self._yolo_data == '3_red'or self._yolo_data == '3_yellow'or self._yolo_data == '3_green':
                     self.red_staus   = True
                     self.green_staus = False
                     
