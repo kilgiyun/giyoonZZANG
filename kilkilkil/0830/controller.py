@@ -126,7 +126,7 @@ class velocity_PidController :                                                  
         _e_filtered = 0         ### 0
         _wn = 2                 ### 2
         _k1 = 1                 ### 1
-        _eps = 1e-3             ### 1e-3
+        _eps = 1e-4             ### 1e-3
         _delta_hat = 0.1        ### 0.1
         
         e1 = des_vel - self.filtered_des_v

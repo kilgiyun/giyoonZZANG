@@ -31,7 +31,7 @@ class PurePursuit:                                          #### purePursuit 알
         self.gps_init     = True
         
         self.rate = rospy.Rate(10)
-        
+
         # self.pid                   = pidController()
         self.ctrl_msg              = CtrlCmd()
         self.forward_point         = Point()
@@ -124,72 +124,76 @@ class PurePursuit:                                          #### purePursuit 알
         rotated_point               = Point()
         self.is_look_forward_point  = False
         
-        if self.local_status:
-            if self.mode == 1:
-                for k in range(len(self.local_path.poses)):
-                    dx = self.local_path.poses[k].pose.position.x - vehicle_position.x ## 변위
-                    dy = self.local_path.poses[k].pose.position.y - vehicle_position.y ## 변위
+        try:
+            if self.local_status:
+                if self.mode == 1:
+                    for k in range(len(self.local_path.poses)):
+                        dx = self.local_path.poses[k].pose.position.x - vehicle_position.x ## 변위
+                        dy = self.local_path.poses[k].pose.position.y - vehicle_position.y ## 변위
 
-                    rotated_point.x = cos(vehicle_yaw)*dx + sin(vehicle_yaw)*dy ## 
-                    rotated_point.y = sin(vehicle_yaw)*dx - cos(vehicle_yaw)*dy ##
+                        rotated_point.x = cos(vehicle_yaw)*dx + sin(vehicle_yaw)*dy ## 
+                        rotated_point.y = sin(vehicle_yaw)*dx - cos(vehicle_yaw)*dy ##
 
-                    if rotated_point.x > 0 :
-                        dis = sqrt(pow(rotated_point.x,2) + pow(rotated_point.y,2))  
-                        if dis >= self.lfd :     
-                            self.lfd = current_vel * 0.65    
-    
-                            if self.lfd < self.min_lfd :   
-                                self.lfd = self.min_lfd
+                        if rotated_point.x > 0 :
+                            dis = sqrt(pow(rotated_point.x,2) + pow(rotated_point.y,2))  
+                            if dis >= self.lfd :     
+                                self.lfd = current_vel * 0.65    
+        
+                                if self.lfd < self.min_lfd :   
+                                    self.lfd = self.min_lfd
 
-                            elif self.lfd > self.max_lfd : 
-                                self.lfd = self.max_lfd
+                                elif self.lfd > self.max_lfd : 
+                                    self.lfd = self.max_lfd
 
-                            self.forward_point = self.local_path.poses[k].pose.position
+                                self.forward_point = self.local_path.poses[k].pose.position
 
-                            self.is_look_forward_point = True
+                                self.is_look_forward_point = True
+                                
+                                break
                             
-                            break
-                        
-                theta=atan2(rotated_point.y,rotated_point.x)
-                
-                self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)   #### 추종 각도 
-                # print('local:', self.steering)
-                return self.steering                                                        #### Steering 반환 
+                    theta=atan2(rotated_point.y,rotated_point.x)
+                    
+                    self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)   #### 추종 각도 
+                    # print('local:', self.steering)
+                    return self.steering                                                        #### Steering 반환 
 
-            elif self.mode == 2:
-                # print('astar')
-                # print(len(self.astar_path.poses))
-                for l in range(0, len(self.astar_path.poses)):
-                    # print(l)
-                    dx = self.astar_path.poses[l].pose.position.x - vehicle_position.x ## 변위
-                    dy = self.astar_path.poses[l].pose.position.y - vehicle_position.y ## 변위
+                elif self.mode == 2:
+                    # print('astar')
+                    # print(len(self.astar_path.poses))
+                    for l in range(0, len(self.astar_path.poses)):
+                        # print(l)
+                        dx = self.astar_path.poses[l].pose.position.x - vehicle_position.x ## 변위
+                        dy = self.astar_path.poses[l].pose.position.y - vehicle_position.y ## 변위
 
-                    rotated_point.x = cos(vehicle_yaw)*dx + sin(vehicle_yaw)*dy ## 
-                    rotated_point.y = sin(vehicle_yaw)*dx - cos(vehicle_yaw)*dy ##
+                        rotated_point.x = cos(vehicle_yaw)*dx + sin(vehicle_yaw)*dy ## 
+                        rotated_point.y = sin(vehicle_yaw)*dx - cos(vehicle_yaw)*dy ##
 
-                    if rotated_point.x > 0 :
-                        dis = sqrt(pow(rotated_point.x,2) + pow(rotated_point.y,2))
-                        
-                        if dis >= self.lfd :     
-                            self.lfd = current_vel * 0.65
-                            if self.lfd < self.min_lfd :   
-                                self.lfd = self.min_lfd
-                            elif self.lfd > self.max_lfd : 
-                                self.lfd = self.max_lfd
-                            self.forward_point = self.astar_path.poses[l].pose.position
-                            self.is_look_forward_point = True
+                        if rotated_point.x > 0 :
+                            dis = sqrt(pow(rotated_point.x,2) + pow(rotated_point.y,2))
                             
+                            if dis >= self.lfd :     
+                                self.lfd = current_vel * 0.65
+                                if self.lfd < self.min_lfd :   
+                                    self.lfd = self.min_lfd
+                                elif self.lfd > self.max_lfd : 
+                                    self.lfd = self.max_lfd
+                                self.forward_point = self.astar_path.poses[l].pose.position
+                                self.is_look_forward_point = True
+                                
+                                break
+                        if l >= len(self.astar_path.poses):
                             break
-                    if l >= len(self.astar_path.poses):
-                        break
-                theta=atan2(rotated_point.y,rotated_point.x)
+                    theta=atan2(rotated_point.y,rotated_point.x)
+                    
+                    self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)   #### 추종 각도 
+                    
+                    return self.steering     
                 
-                self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)   #### 추종 각도 
+                else:
+                    pass
                 
-                return self.steering     
-            
-            else:
-                pass
+        except:
+            pass
             
     def goal_vel(self, target_vel_m):          #### km/h -> m/s 해주는 함수
         target_vel = target_vel_m * (1000/3600)

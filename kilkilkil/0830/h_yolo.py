@@ -19,13 +19,21 @@ class Yolo:
         self.red_staus   = False
         self.green_staus = False
         
+        self.yolo_real = False    ### Morai
+        # self.yolo_real = True     ### real
+        
         self.current_waypoint = 0
         
         self._yolo_data = 0 
         
-        self.lines = [93, 94, 95, 96, 135, 136, 137, 138, 236, 237, 238, 239, 240, 241,
-                    323, 324, 325, 326, 550, 551, 552, 553, 554, 555, 657, 658, 659, 660, 693, 694, 695, 696]
+        self.lines = [92, 93, 94, 95, 96, 135, 136, 137, 138, 236, 237, 238, 239, 240, 241,             #### 1, 2, 3, 7 번의 정지선 앞 
+                    550, 551, 552, 553, 554, 555, 656, 657, 658, 659, 660, 693, 694, 695, 696]
         
+        self.lines2 = [323, 324, 325, 326]                                                              #### 4번의 정지선 앞 (빨좌일때만 가야함)
+        
+        ########
+        # 323 ~ 326 : 빨좌일때만 (left)
+        ########
         self.yolo_vel = 0
         self.ctrl_msg = CtrlCmd()
         rospy.Subscriber('/waypoint', Int16, self.waypointCB)
@@ -33,21 +41,11 @@ class Yolo:
     
     def waypointCB(self, _data: Int16):
         self.current_waypoint =_data.data
-        ####
-        # 1번째 : 69 - 71
-        # 2번째 : 107- 112
-        # 3번째 : 212- 218
-        # 4번째 : 295 - 302
-        # 5번째 : U 턴
-        # 6번째 : 522 - 526
-        # 7번째 : 623 - 628
-        # 8번째 : 659 - 663 
-        ####
         
     def yoloCB(self, _data: BoundingBoxes):
 
         size = []
-        if self.current_waypoint in self.lines:
+        if self.current_waypoint in self.lines or self.current_waypoint in self.lines2:
             # print('111')
             for i in range(len(_data.bounding_boxes)):
                 xmax = _data.bounding_boxes[i].xmax
@@ -68,29 +66,53 @@ class Yolo:
     
     def main_yolo(self):
         
-        ############## Moari
-        if self._yolo_data == '4_red' or self._yolo_data == '3_red' or self._yolo_data == '4_yellow':
-            self.red_staus   = True
-            self.green_staus = False
+        ############## Real
+        if self.yolo_real:
+            if self.current_waypoint in self.lines:
+                if self._yolo_data == 'red' or self._yolo_data == 'yellow':
+                    self.green_staus = False
+                    
+                elif self._yolo_data == 'straight' or self._yolo_data == 'left_straight':
+                    self.red_staus   = False
+                    self.green_staus = True
             
-        elif self._yolo_data == '4_green' or self._yolo_data == '3_green' or self._yolo_data == '4_str_left' :
-            self.red_staus   = False
-            self.green_staus = True
-        else:
-            pass
+            elif self.current_waypoint in self.lines2:
+                if self._yolo_data == 'left':    
+                    self.red_staus   = False
+                    self.green_staus = True
+                else:
+                    self.red_staus   = True
+                    self.green_staus = False
+                    
+            else:
+                pass
         ##############
         
-        ############## Real
-        if self._yolo_data == 'red' or self._yolo_data == 'yellow':
-            self.red_staus   = True
-            self.green_staus = False
-            
-        elif self._yolo_data == 'straight' or self._yolo_data == 'left_straight' or self._yolo_data == 'left':
-            self.red_staus   = False
-            self.green_staus = True
+        ############## Moari
         else:
-            pass
+            if self.current_waypoint in self.lines:
+                print('normal')
+                if self._yolo_data == '4_red' or self._yolo_data == '3_red' or self._yolo_data == '4_yellow':
+                    self.red_staus   = True
+                    self.green_staus = False
+                    
+                elif self._yolo_data == '4_green' or self._yolo_data == '3_green' or self._yolo_data == '4_str_left' :
+                    self.red_staus   = False
+                    self.green_staus = True
+            
+            elif self.current_waypoint in self.lines2:
+                if self._yolo_data == '4_red':    
+                    self.red_staus   = False
+                    self.green_staus = True
+                else:
+                    self.red_staus   = True
+                    self.green_staus = False
+                    
+            else:
+                pass
         ##############
+        
+        print(self._yolo_data)
         # print('red', self.red_staus)
         # print('green', self.green_staus)
         

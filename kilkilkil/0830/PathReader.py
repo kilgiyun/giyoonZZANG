@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from importlib.resources import path
-import pstats
 import sys
 import rospy
 import rospkg
 
 from nav_msgs.msg import Path
-from sensor_msgs.msg import Imu
 from geometry_msgs.msg import PoseStamped,Point
 from morai_msgs.msg import GPSMessage
 from std_msgs.msg import Int16
@@ -63,25 +60,14 @@ class pathReader():
         self.local_path_pub  = rospy.Publisher('/local_path',Path, queue_size=1)    
         self.waypoint_pub = rospy.Publisher('/waypoint',Int16, queue_size=10)
             
-        rospy.Subscriber('/gps', GPSMessage, self.gpsCB)
-        rospy.Subscriber('/imu', Imu, self.imuCB)        
+        rospy.Subscriber('/gps', GPSMessage, self.gpsCB)        
         self.main()
 
     def gpsCB(self, _data: GPSMessage):
         xy_zone= self.proj_UTM(_data.longitude, _data.latitude)
-        # if self.gpsinit:
-        #     self.x_init = xy_zone[0]
-        #     self.y_init = xy_zone[1]
-        #     self.gpsinit = False
-            
-        # print(self.x_init)
-        # print(self.y_init)
+
         self.x = xy_zone[0] - self.x_init
         self.y = xy_zone[1] - self.y_init 
-
-    def imuCB(self, _data:Imu):
-        quaternion = (_data.orientation.x, _data.orientation.y, _data.orientation.z, _data.orientation.w)
-        self.roll,self.pitch,self.yaw = euler_from_quaternion(quaternion)           #### roll, pitch, yaw 로 변환
 
     def read_txt(self, file_name):
         full_file_name = self.file_path+"/path/"+file_name
@@ -121,6 +107,7 @@ class pathReader():
         dis_array.index(min(dis_array))    
         self.current_waypoint = dis_array.index(min(dis_array)) + 1
         print('current :', self.current_waypoint)
+        print(min(dis_array))
         
         if self.current_waypoint + 16 > len(self.global_path.poses) : #현재 웨이 포인트+50이 len(ref_path)보다 크면
             last_local_waypoint = len(self.global_path.poses)      #last_local_waypoint는 reh_path

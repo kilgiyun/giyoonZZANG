@@ -9,6 +9,7 @@ from matplotlib.pyplot import pause
 from math import sqrt
 
 from visualization_msgs.msg import Marker
+from std_msgs.msg import Int16
 
 import rospy
 from nav_msgs.msg import Path, OccupancyGrid
@@ -30,6 +31,21 @@ class SubLocalMap():
 
         self.proj_UTM= Proj(proj='utm', zone=52, ellps='WGS84', preserve_units=False)
 
+        #### preliminary
+        # self.obstacle_lines = [102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115,
+        #                    186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200,
+        #                    201, 202, 203, 204, 205, 206, 207, 208]
+        ####
+        #### move obstacle : 102 ~ 115
+        #### obstacle      : 186 ~208
+        
+        #### final
+        self.obstacle_lines = [180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194,
+                            195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210,
+                            211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 
+                            227, 228, 229, 230, 231]
+        ####
+        
         self.cur_x = 0
         self.cur_y = 0
 
@@ -77,6 +93,7 @@ class SubLocalMap():
         rospy.Subscriber('/local_map', OccupancyGrid, self.fnc_subLocalMap) 
         rospy.Subscriber('/local_path', Path, self.fnc_subLocalPath)
         rospy.Subscriber('/gps', GPSMessage, self.fnc_subGpsCB)
+        rospy.Subscriber('/waypoint', Int16, self.waypointCB)
         #####
 
         self.srvAstar = rospy.ServiceProxy('/gpp_Astar', Astar)
@@ -88,6 +105,10 @@ class SubLocalMap():
         self.pub_astar_path         = rospy.Publisher('/astar_path', Path, queue_size=1)
     
         self.main()
+        
+        
+    def waypointCB(self, _data: Int16):
+        self.current_waypoint =_data.data
         
     def fnc_subGpsCB(self, _data:GPSMessage):
 
@@ -202,7 +223,7 @@ class SubLocalMap():
                 
             # print(self.line_pos_x)
 
-             ##### covert to 1 m unit
+            ##### covert to 1 m unit
             clean_pos_x = []
             clean_pos_y = []
             for j in range(0, len(self.line_pos_x) - 1):
@@ -254,41 +275,53 @@ class SubLocalMap():
             # print(self.realrealreal_LocalPath_y[0])
 
             # print(self.arrayRealLocalPath_x[0])
-            self.pub_marker((self.arrayRealLocalPath_x[0] * self.fResolution) + self.localmap_start_x , (self.arrayRealLocalPath_y[0] * self.fResolution) + self.localmap_start_y, 
-                            (self.arrayRealLocalPath_x[self.dis_obstacle]* self.fResolution) + self.localmap_start_x , (self.arrayRealLocalPath_y[self.dis_obstacle] * self.fResolution) + self.localmap_start_y,
-                            (self.arrayRealLocalPath_x[self.path_length - 1]* self.fResolution) + self.localmap_start_x , (self.arrayRealLocalPath_y[self.path_length - 1] * self.fResolution) + self.localmap_start_y)
+            # self.pub_marker((self.arrayRealLocalPath_x[0] * self.fResolution) + self.localmap_start_x , (self.arrayRealLocalPath_y[0] * self.fResolution) + self.localmap_start_y, 
+            #                 (self.arrayRealLocalPath_x[self.dis_obstacle]* self.fResolution) + self.localmap_start_x , (self.arrayRealLocalPath_y[self.dis_obstacle] * self.fResolution) + self.localmap_start_y,
+            #                 (self.arrayRealLocalPath_x[self.path_length - 1]* self.fResolution) + self.localmap_start_x , (self.arrayRealLocalPath_y[self.path_length - 1] * self.fResolution) + self.localmap_start_y)
             
     def main(self):
         while not rospy.is_shutdown():        
             try:
+                if self.current_waypoint in self.obstacle_lines:
+                    print('hi')
+                    if self.bReceived and self.bCalcLocalPathDone:
+                        
+                        _data_check_x = self.arrayRealLocalPath_x
+                        _data_check_y = self.arrayRealLocalPath_y
+                        
+                        # print(int(self.path_length / 2))
 
-                if self.bReceived and self.bCalcLocalPathDone:
-                    _data_check_x = self.arrayRealLocalPath_x
-                    _data_check_y = self.arrayRealLocalPath_y
-                    
-                    # print(int(self.path_length / 2))
+                        _data1 = self.twodimension_map[_data_check_x[self.dis_obstacle] - 1][_data_check_y[self.dis_obstacle]]
+                        # print('fuck11111')
+                        _data2 = self.twodimension_map[_data_check_x[self.dis_obstacle]][_data_check_y[self.dis_obstacle]]
+                        # print('fuck22222')
+                        _data3 = self.twodimension_map[_data_check_x[self.dis_obstacle] + 1][_data_check_y[self.dis_obstacle] - 1]
+                        # print('fuck33333')
+                        _data4 = self.twodimension_map[_data_check_x[self.dis_obstacle] + 1][_data_check_y[self.dis_obstacle]]
+                        # print('fuck44444')
+                        _data5 = self.twodimension_map[_data_check_x[self.dis_obstacle] - 1][_data_check_y[self.dis_obstacle] + 1]
+                        # print('fuck55555')
+                        ###### 100 이면 장애물 있는거, 50이면모르는 거 , 0 이면 빈 공간
+                        ################
+                        print(_data1, _data2, _data3, _data4, _data5)############ 다시 켜주고
+                        
+                        ##################           
 
-                    _data = self.twodimension_map[_data_check_x[self.dis_obstacle]][_data_check_y[self.dis_obstacle]]
-                    ###### 100 이면 장애물 있는거, 50이면모르는 거 , 0 이면 빈 공간
-                    ################
-                    print(_data)############ 다시 켜주고
-                    ##################           
-
-                    if _data >= 100:
-                        # _start_pos_x = _data_check_x[int(self.path_length/5)]
-                        # _start_pos_y = _data_check_y[int(self.path_length/5)]
-                        _start_pos_x    = _data_check_x[2]
-                        _start_pos_y    = _data_check_y[2]
-                        _goal_pos_x     = _data_check_x[self.path_length - 1]
-                        _goal_pos_y     = _data_check_y[self.path_length - 1]
-                        _obstacle_pos_x = _data_check_x[int(self.path_length / 2)]
-                        _obstacle_pos_y = _data_check_y[int(self.path_length / 2)]
-                        # print(_start_pos_x, _start_pos_y, _goal_pos_x, _goal_pos_y)
-                        self.resultPath = self.srvAstar(_start_pos_x, _start_pos_y, _goal_pos_x, _goal_pos_y, _obstacle_pos_x, _obstacle_pos_y)
-                        print('astar publish')
-                        # print(self.resultPath)
-                        self.bastarState = True
-                    rospy.sleep(0.1)
+                        if _data1 >= 100 or _data2 >= 100 or _data3 >= 100 or _data4 >= 100 or _data5 >= 100:
+                            # _start_pos_x = _data_check_x[int(self.path_length/5)]
+                            # _start_pos_y = _data_check_y[int(self.path_length/5)]
+                            _start_pos_x    = _data_check_x[2]
+                            _start_pos_y    = _data_check_y[2]
+                            _goal_pos_x     = _data_check_x[self.path_length - 1]
+                            _goal_pos_y     = _data_check_y[self.path_length - 1]
+                            _obstacle_pos_x = _data_check_x[int(self.path_length / 2)]
+                            _obstacle_pos_y = _data_check_y[int(self.path_length / 2)]
+                            # print(_start_pos_x, _start_pos_y, _goal_pos_x, _goal_pos_y)
+                            self.resultPath = self.srvAstar(_start_pos_x, _start_pos_y, _goal_pos_x, _goal_pos_y, _obstacle_pos_x, _obstacle_pos_y)
+                            print('astar publish')
+                            # print(self.resultPath)
+                            self.bastarState = True
+                        rospy.sleep(0.1)
             except:
                 pass
             self.astar_pub()
@@ -300,10 +333,6 @@ class SubLocalMap():
         astar_path.header.frame_id = 'map' ## idk\
         if self.resultPath != 0:
             for i in range(0, len(self.resultPath.path_x)):
-                # print(self.resultPath.path_x[i])
-                # print(self.resultPath.path_y)
-                # print("#########################################################################")
-                # print(self.resultPath.path_x)
                 read_pose                    = PoseStamped()
                 read_pose.pose.position.x    = (self.resultPath.path_x[i] * self.fResolution) + self.localmap_start_x
                 read_pose.pose.position.y    = (self.resultPath.path_y[i] * self.fResolution) + self.localmap_start_y

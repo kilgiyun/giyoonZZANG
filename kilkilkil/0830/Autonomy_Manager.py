@@ -20,8 +20,6 @@ class Start_planner(PurePursuit, Yolo):
     def main(self):
         while not rospy.is_shutdown():
             self.main_yolo()
-            
-            
             ##########
             # print('sijac')
             if self.red_staus:
@@ -33,12 +31,14 @@ class Start_planner(PurePursuit, Yolo):
                 self.ctrl_msg.velocity = self.vel()
             
             print(self.ctrl_msg.velocity)
-            print(self.current_waypoint)
+            # print(self.current_waypoint)
+            
+            mode = 1
             
             if self.local_path:
-                self.mode = 1
+                mode = 1
                 if self.astar_path:
-                    self.mode = 2
+                    mode = 2
                     # print('umm', self.goal_pos_x, self.goal_pos_y)
                     # print('cur', self.x, self.y)
                     dis = sqrt(pow(self.goal_pos_x - self.cur_x,2) + pow(self.goal_pos_y - self.cur_y, 2))
@@ -47,10 +47,10 @@ class Start_planner(PurePursuit, Yolo):
                     if dis <= 2:
                         self.astar_path = False
                         
-            # print(self.mode)
+            print('mode:', mode)
             # print(self.ctrl_msg)
             self.cmd_pub.publish(self.ctrl_msg)
-            self.mode_pub.publish(self.mode)
+            self.mode_pub.publish(mode)
             
             self.rate.sleep()
             
