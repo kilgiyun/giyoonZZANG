@@ -1,0 +1,9 @@
+int32 start_pos_x
+int32 start_pos_y
+int32 goal_pos_x
+int32 goal_pos_y
+int32 obstacle_pos_x
+int32 obstacle_pos_y
+---
+int64[] path_x
+int64[] path_y

@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+    <node name="gpp_astar" pkg="gpp_astar" type="h_A_star.py" output="screen"/>
+        <param name="map_plot" value="False"/>
+        <param name="localmap_topic" value="/local_map"/>
+        <param name="heuristic_weight" value="1.5"/> 
+        <!-- 1.5-->
+        <param name="resize_grid_x" value="40"/>
+        <param name="resize_grid_y" value="40"/>
+</launch>
