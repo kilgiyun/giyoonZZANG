@@ -50,13 +50,13 @@ class PurePursuit:                                          #### purePursuit 알
         self.cur_x = 0
         self.cur_y = 0
         
+        self.mode = 0 
+        
         self.goal_pos_x = 0
         self.goal_pos_y = 0
 
         self.global_out_path = Path()
         self.local_out_path  = Path()    
-        
-        self.mode = 1
         
         self.x_init = 302473.5122667786
         self.y_init = 4123735.6543077542
@@ -126,7 +126,9 @@ class PurePursuit:                                          #### purePursuit 알
         
         try:
             if self.local_status:
+                # print('modeeeeeeeeee:', self.mode)
                 if self.mode == 1:
+                    print('local')
                     for k in range(len(self.local_path.poses)):
                         dx = self.local_path.poses[k].pose.position.x - vehicle_position.x ## 변위
                         dy = self.local_path.poses[k].pose.position.y - vehicle_position.y ## 변위
@@ -158,7 +160,7 @@ class PurePursuit:                                          #### purePursuit 알
                     return self.steering                                                        #### Steering 반환 
 
                 elif self.mode == 2:
-                    # print('astar')
+                    print('astar')
                     # print(len(self.astar_path.poses))
                     for l in range(0, len(self.astar_path.poses)):
                         # print(l)
@@ -204,13 +206,13 @@ class PurePursuit:                                          #### purePursuit 알
             self.ctrl_msg.steering = (-self.ctrl_msg.steering)
             if self.is_status:
                 if self.ctrl_msg.steering > abs(0.3):
-                    self.target_vel = self.goal_vel(11)
+                    self.target_vel = self.goal_vel(5)
                 elif self.ctrl_msg.steering > abs(0.6):
-                    self.target_vel = self.goal_vel(8)
+                    self.target_vel = self.goal_vel(5)
                 elif self.ctrl_msg.steering > abs(0.8):         
                     self.target_vel = self.goal_vel(5)
                 else:
-                    self.target_vel = self.goal_vel(15)
+                    self.target_vel = self.goal_vel(5)
 
         return self.target_vel
     

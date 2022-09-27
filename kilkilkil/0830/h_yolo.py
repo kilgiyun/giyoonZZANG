@@ -22,15 +22,24 @@ class Yolo:
         self.yolo_real = False    ### Morai
         # self.yolo_real = True     ### real
         
+        # self.yolo_final = True
+        self.yolo_final = False
+        
         self.current_waypoint = 0
         
         self._yolo_data = 0 
         
-        self.lines = [92, 93, 94, 95, 96, 135, 136, 137, 138, 236, 237, 238, 239, 240, 241,             #### 1, 2, 3, 7 번의 정지선 앞 
-                    550, 551, 552, 553, 554, 555, 656, 657, 658, 659, 660, 693, 694, 695, 696]
-        
-        self.lines2 = [323, 324, 325, 326]                                                              #### 4번의 정지선 앞 (빨좌일때만 가야함)
-        
+        if self.yolo_real == False:
+            if self.yolo_final:
+                self.lines = [92, 93, 94, 95, 96, 135, 136, 137, 138, 236, 237, 238, 239, 240, 241,             #### 1, 2, 3, 7 번의 정지선 앞 
+                    548, 549, 550, 551, 552, 553, 554, 555, 656, 657, 658, 659, 660, 693, 694, 695, 696]
+                self.lines2 = [323, 324, 325, 326] 
+                
+            elif self.yolo_final == False:
+                self.lines = [103, 104, 105, 106, 107, 108, 109, 110]
+                self.lines2 = []
+                
+                
         ########
         # 323 ~ 326 : 빨좌일때만 (left)
         ########
@@ -91,7 +100,7 @@ class Yolo:
         ############## Moari
         else:
             if self.current_waypoint in self.lines:
-                print('normal')
+                # print('normal')
                 if self._yolo_data == '4_red' or self._yolo_data == '3_red' or self._yolo_data == '4_yellow':
                     self.red_staus   = True
                     self.green_staus = False
@@ -112,7 +121,7 @@ class Yolo:
                 pass
         ##############
         
-        print(self._yolo_data)
+        # print(self._yolo_data)
         # print('red', self.red_staus)
         # print('green', self.green_staus)
         

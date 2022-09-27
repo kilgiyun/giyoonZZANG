@@ -20,11 +20,11 @@ from pyproj import Proj
 class pathReader():                                         
     def __init__(self):
         #### 예선
-        # self.path_name = 'preliminary_0916.txt'
+        self.path_name = 'pre_0919.txt'
         ####
         
         #### 본선
-        self.path_name = 'final_0916.txt'
+        # self.path_name = 'final_0916.txt'
         ####
         
         #### bag 
@@ -42,7 +42,7 @@ class pathReader():
         self.x_init = 302473.5122667786
         self.y_init = 4123735.6543077542
 
-        self.rate = rospy.Rate(30)
+        self.rate = rospy.Rate(10)
 
         self.global_path = 0
         self.local_path  = 0
@@ -68,6 +68,7 @@ class pathReader():
 
         self.x = xy_zone[0] - self.x_init
         self.y = xy_zone[1] - self.y_init 
+        # print(_data.longitude, _data.latitude)
 
     def read_txt(self, file_name):
         full_file_name = self.file_path+"/path/"+file_name
@@ -107,7 +108,7 @@ class pathReader():
         dis_array.index(min(dis_array))    
         self.current_waypoint = dis_array.index(min(dis_array)) + 1
         print('current :', self.current_waypoint)
-        print(min(dis_array))
+        # print(min(dis_array))
         
         if self.current_waypoint + 16 > len(self.global_path.poses) : #현재 웨이 포인트+50이 len(ref_path)보다 크면
             last_local_waypoint = len(self.global_path.poses)      #last_local_waypoint는 reh_path

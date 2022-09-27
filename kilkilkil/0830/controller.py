@@ -79,7 +79,7 @@ class velocity_PidController :                                                  
 
     def cmdCB(self, _data:CtrlCmd):
         self.target_vel = _data.velocity
-        # print('?',_data.velocity)
+        # print('vel',_data.velocity)
         self.des_steering   = _data.steering
         self.des_brake  = _data.brake
         # print('angle:', self.steering)     
@@ -182,6 +182,7 @@ class velocity_PidController :                                                  
             else :
                 pass
             
+            print(self.ctrl_msg.steering)
             self.ctrl_pub.publish(self.ctrl_msg) 
             self.rate.sleep()
 

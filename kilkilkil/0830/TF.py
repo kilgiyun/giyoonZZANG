@@ -81,7 +81,7 @@ class TF():
                             "imu", # 아들
                             "/base_link") # 아엄 
             
-            br.sendTransform((3.95, 0, 1.01),
+            br.sendTransform((3.9, 0, 1),
                             tf.transformations.quaternion_from_euler(0, 0, 3.14),
                             rospy.Time.now(),
                             "Camera", # 아들
