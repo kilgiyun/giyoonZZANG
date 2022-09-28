@@ -10,8 +10,6 @@ from morai_msgs.msg import GPSMessage
 from std_msgs.msg import Int16
 
 from math import cos,sin,sqrt,pow,atan2,pi
-import tf
-from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from pyproj import Proj
 
 
@@ -132,7 +130,6 @@ class pathReader():
         return out_path
 
     def main(self):
-        br = tf.TransformBroadcaster()
         self.global_path = self.read_txt(self.path_name)
         while not rospy.is_shutdown():
             # print(self.global_path)

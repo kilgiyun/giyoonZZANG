@@ -42,7 +42,7 @@ class test :
         
         self.x_init = 302473.5122667786
         self.y_init = 4123735.6543077542
-
+        
         rospack =   rospkg.RosPack()
         pkg_path =  rospack.get_path('my_test')
         full_path = pkg_path +'/'+ self.path_folder_name+'/'+self.make_path_name+'.txt'       ## linux

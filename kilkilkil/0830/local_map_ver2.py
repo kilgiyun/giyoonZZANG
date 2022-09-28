@@ -53,9 +53,6 @@ class SubLocalMap():
         self.cur_x = 0
         self.cur_y = 0
 
-        self.Mor_x = 0 #### ego_topic - gps 기준 utm 
-        self.Mor_y = 0
-
         self.x_init = 302473.5122667786
         self.y_init = 4123735.6543077542
     
@@ -64,7 +61,7 @@ class SubLocalMap():
         self.iHeight     = 0
         self.arrayMap    = 0
 
-        self.dis_obstacle = 7
+        self.dis_obstacle = 6
         ############### 1pixel = 0.5 m
         ############### nemely, 40 pixel = 20 m 
         
@@ -126,6 +123,7 @@ class SubLocalMap():
 
         self.cur_x = xy_zone[0] - self.x_init  
         self.cur_y = xy_zone[1] - self.y_init   
+        print('cur',self.cur_x, self.cur_y)
         self.bSubGPS = True
 
     def fnc_subLocalMap(self, _data:OccupancyGrid):
@@ -137,7 +135,7 @@ class SubLocalMap():
 
             self.localmap_start_x = _data.info.origin.position.x   ### local map 초기 위치 
             self.localmap_start_y = _data.info.origin.position.y
-            
+            print('origin_local', self.localmap_start_x, self.localmap_start_y)
             a = np.array(self.arrayMap, dtype=np.uint8) 
 
             self.twodimension_map = a.reshape(self.iWidth, self.iHeight)
@@ -312,7 +310,7 @@ class SubLocalMap():
                     #############################################################
                     ###### 100 이면 장애물 있는거, 50이면모르는 거 , 0 이면 빈 공간  x,y 좌표 반대임
                     #############################################################
-                    print(_data1, _data2, _data3, _data4, _data5)############ 다시 켜주고
+                    # print(_data1, _data2, _data3, _data4, _data5)############ 다시 켜주고
                     
                     ##################           
 

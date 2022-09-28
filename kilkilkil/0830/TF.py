@@ -32,6 +32,9 @@ class TF():
         self.x_init = 302473.5122667786
         self.y_init = 4123735.6543077542
         
+        self.fake_x_init = 302473.5122667786
+        self.fake_y_init = 4123735.6543077542
+        
         self.fake_x = 0
         self.fake_y = 0
         
@@ -45,13 +48,13 @@ class TF():
         xy_zone= self.proj_UTM(_data.longitude, _data.latitude)
         self.x = xy_zone[0]
         self.y = xy_zone[1]
-        # if self.status:
-        #     self.x_init = xy_zone[0]
-        #     self.y_init = xy_zone[1]
-        #     self.status = False
+        if self.status:
+            self.fake_x = self.x - self.fake_x_init
+            self.fake_y = self.y - self.fake_y_init
+            self.status = False
+        self.x = self.x - self.x_init
+        self.y = self.y - self.y_init
         
-        self.fake_x = self.x - self.x_init
-        self.fake_y = self.y - self.y_init
     
     def imuCB(self, _data:Imu):
         quaternion = (_data.orientation.x, _data.orientation.y, _data.orientation.z, _data.orientation.w)
@@ -63,29 +66,36 @@ class TF():
     def main(self):
         br = tf.TransformBroadcaster()
         while not rospy.is_shutdown():
-            br.sendTransform((self.fake_x, self.fake_y, 0),
+            # br.sendTransform((self.fake_x, self.fake_y, 0),
+            br.sendTransform((self.x, self.y, 0),
                             tf.transformations.quaternion_from_euler(0, 0, self.yaw),
                             rospy.Time.now(),
                             "/base_link", # 아들
-                            "/map") # 아엄 
+                            "/odom") # 아엄
             
-            br.sendTransform((0, 0, 0),
+            br.sendTransform((self.fake_x, self.fake_y, 0),
                             tf.transformations.quaternion_from_euler(0, 0, 0),
                             rospy.Time.now(),
-                            "gps", # 아들
-                            "/base_link") # 아엄 
+                            "/odom", # 아들
+                            "/map") # 아엄
             
-            br.sendTransform((0, 0, 0),
-                            tf.transformations.quaternion_from_euler(0, 0, 0),
-                            rospy.Time.now(),
-                            "imu", # 아들
-                            "/base_link") # 아엄 
+            # br.sendTransform((0, 0, 0),
+            #                 tf.transformations.quaternion_from_euler(0, 0, 0),
+            #                 rospy.Time.now(),
+            #                 "gps", # 아들
+            #                 "/base_link") # 아엄 
             
-            br.sendTransform((3.9, 0, 1),
-                            tf.transformations.quaternion_from_euler(0, 0, 3.14),
-                            rospy.Time.now(),
-                            "Camera", # 아들
-                            "/base_link") # 아엄 
+            # br.sendTransform((0, 0, 0),
+            #                 tf.transformations.quaternion_from_euler(0, 0, 0),
+            #                 rospy.Time.now(),
+            #                 "imu", # 아들
+            #                 "/base_link") # 아엄 
+            
+            # br.sendTransform((3.9, 0, 1),
+            #                 tf.transformations.quaternion_from_euler(0, 0, 3.14),
+            #                 rospy.Time.now(),
+            #                 "Camera", # 아들
+            #                 "/base_link") # 아엄 
             
             # br.sendTransform((3.95, 0, 1.01),
             #                 tf.transformations.quaternion_from_euler(0, 0, 3.14),
@@ -93,11 +103,11 @@ class TF():
             #                 "zed_left_camera_frame", # 아들
             #                 "/base_link") # 아엄 
             
-            br.sendTransform((3.95, 0, 0.4),
-                            tf.transformations.quaternion_from_euler(0, 0, 0),
-                            rospy.Time.now(),
-                            "1", # 아들
-                            "/base_link") # 아엄 
+            # br.sendTransform((3.95, 0, 0.4),
+            #                 tf.transformations.quaternion_from_euler(0, 0, 0),
+            #                 rospy.Time.now(),
+            #                 "1", # 아들
+            #                 "/base_link") # 아엄 
 
             self.rate.sleep()
 

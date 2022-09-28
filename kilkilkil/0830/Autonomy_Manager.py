@@ -56,8 +56,6 @@ class Start_planner(PurePursuit, Yolo):
                 self.cmd_pub.publish(self.ctrl_msg)  #### field steering must be float type
                 self.mode_pub.publish(self.mode)
                 
-            plt.plot([1, 2, 3, 4], [1, 4, 9, 16])
-            plt.show()
             self.rate.sleep()
             
 def main(args):
