@@ -36,7 +36,7 @@ class Yolo:
                 self.lines2 = [323, 324, 325, 326] 
                 
             elif self.yolo_final == False:
-                self.lines = [103, 104, 105, 106, 107, 108, 109, 110]
+                self.lines = [93, 94, 95, 96, 97, 98, 99, 100]
                 self.lines2 = []
                 
                 
@@ -121,9 +121,9 @@ class Yolo:
                 pass
         ##############
         
-        # print(self._yolo_data)
-        # print('red', self.red_staus)
-        # print('green', self.green_staus)
+        print(self._yolo_data)
+        print('red', self.red_staus)
+        print('green', self.green_staus)
         
 def main(args):
 

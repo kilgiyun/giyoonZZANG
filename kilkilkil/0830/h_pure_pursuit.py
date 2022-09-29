@@ -30,6 +30,8 @@ class PurePursuit:                                          #### purePursuit 알
         self.is_status    = False
         self.gps_init     = True
         
+        self.basic_vel = 5
+        
         self.rate = rospy.Rate(10)
 
         # self.pid                   = pidController()
@@ -85,7 +87,7 @@ class PurePursuit:                                          #### purePursuit 알
         
         self.cur_x = xy_zone[0] - self.x_init
         self.cur_y = xy_zone[1] - self.y_init
-        # print('gps on')
+        # print(self.cur_x, self.cur_y)
         
     def LocalCB(self, _data:Path):
         self.local_path = _data
@@ -130,8 +132,8 @@ class PurePursuit:                                          #### purePursuit 알
                 if self.mode == 1:
                     print('local')
                     for k in range(len(self.local_path.poses)):
-                        dx = self.local_path.poses[k].pose.position.x - vehicle_position.x ## 변위
-                        dy = self.local_path.poses[k].pose.position.y - vehicle_position.y ## 변위
+                        dx = self.local_path.poses[k ].pose.position.x - vehicle_position.x ## 변위
+                        dy = self.local_path.poses[k ].pose.position.y - vehicle_position.y ## 변위
 
                         rotated_point.x = cos(vehicle_yaw)*dx + sin(vehicle_yaw)*dy ## 
                         rotated_point.y = sin(vehicle_yaw)*dx - cos(vehicle_yaw)*dy ##
@@ -212,7 +214,7 @@ class PurePursuit:                                          #### purePursuit 알
                 elif self.ctrl_msg.steering > abs(0.8):         
                     self.target_vel = self.goal_vel(5)
                 else:
-                    self.target_vel = self.goal_vel(5)
+                    self.target_vel = self.goal_vel(self.basic_vel)
 
         return self.target_vel
     

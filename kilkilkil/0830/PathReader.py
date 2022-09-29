@@ -18,7 +18,7 @@ from pyproj import Proj
 class pathReader():                                         
     def __init__(self):
         #### 예선
-        self.path_name = 'pre_0919.txt'
+        self.path_name = 'pre_0929.txt'
         ####
         
         #### 본선
@@ -73,7 +73,8 @@ class pathReader():
         openFile       = open(full_file_name, 'r')
         
         out_path = Path()
-        out_path.header.frame_id = 'map' ## idk
+        out_path.header.frame_id = 'map' 
+        # out_path.header.frame_id = 'fake_base_link' 
 
         line = openFile.readlines()
         for i in line :
@@ -104,7 +105,7 @@ class pathReader():
 
         min(dis_array)
         dis_array.index(min(dis_array))    
-        self.current_waypoint = dis_array.index(min(dis_array)) + 1
+        self.current_waypoint = dis_array.index(min(dis_array))
         print('current :', self.current_waypoint)
         # print(min(dis_array))
         
@@ -113,9 +114,10 @@ class pathReader():
             # if self.current_waypoint == len(self.global_path.poses) - 1:
             #     # self.ctrl_cmd
         else :
-            last_local_waypoint = self.current_waypoint + 16  
+            last_local_waypoint = self.current_waypoint + 16
 
         out_path.header.frame_id = 'map'
+        # out_path.header.frame_id = 'fake_base_link'
         
         for j in range(self.current_waypoint, last_local_waypoint):               #### 현재 waypoint 부터 last local waypoint 까지 x,y 값을 넣어서 out_path 를 만들어주는 거
             tmp_pose                    = PoseStamped()

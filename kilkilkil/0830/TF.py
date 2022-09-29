@@ -67,17 +67,17 @@ class TF():
         br = tf.TransformBroadcaster()
         while not rospy.is_shutdown():
             # br.sendTransform((self.fake_x, self.fake_y, 0),
-            br.sendTransform((self.x, self.y, 0),
+            br.sendTransform((self.x - self.fake_x, self.y - self.fake_y, 0),
                             tf.transformations.quaternion_from_euler(0, 0, self.yaw),
                             rospy.Time.now(),
                             "/base_link", # 아들
-                            "/odom") # 아엄
+                            "/fake_base_link") # 아엄
             
             br.sendTransform((self.fake_x, self.fake_y, 0),
                             tf.transformations.quaternion_from_euler(0, 0, 0),
                             rospy.Time.now(),
-                            "/odom", # 아들
-                            "/map") # 아엄
+                            "/fake_base_link", # 아들
+                            "/odom") # 아엄
             
             # br.sendTransform((0, 0, 0),
             #                 tf.transformations.quaternion_from_euler(0, 0, 0),

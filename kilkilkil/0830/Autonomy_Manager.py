@@ -43,11 +43,10 @@ class Start_planner(PurePursuit, Yolo):
                 if self.astar_path:
                     self.mode = 2
                     # print('umm', self.goal_pos_x, self.goal_pos_y)
-                    # print('cur', self.x, self.y)
                     dis = sqrt(pow(self.goal_pos_x - self.cur_x,2) + pow(self.goal_pos_y - self.cur_y, 2))
                     print("dis:", dis)
                     print('==============================')
-                    if dis <= 2:
+                    if dis <= 2.5:
                         self.astar_path = False
                         
             print('self.mode:', self.mode)
