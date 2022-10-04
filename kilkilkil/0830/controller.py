@@ -3,6 +3,7 @@
 from importlib.resources import path
 import pstats
 import sys
+from turtle import end_fill
 
 from numpy import float64
 import rospy
@@ -25,7 +26,7 @@ class velocity_PidController :                                                  
         self.vel_i_gain      = 0.01     # 0.0                                              #### i 가 높으면 목표까지 가는 시간 단축, but 불안정해질 수 있음 (우리가 배운 overshoot 발생)
         self.vel_d_gain      = 0.00    # 0.05                                               #### d 가 높으면 안정성이 높아짐 
         
-        self.angle_p_gain    = 0.45
+        self.angle_p_gain    = 1
         self.angle_i_gain    = 0.01
         self.angle_d_gain    = 0.00
         
@@ -76,13 +77,11 @@ class velocity_PidController :                                                  
         quaternion = (_data.orientation.x, _data.orientation.y, _data.orientation.z, _data.orientation.w)
         self.roll,self.pitch,self.yaw = euler_from_quaternion(quaternion)           #### roll, pitch, yaw 로 변환
         self.yawrate = (_data.angular_velocity.z) * self.deg2rad
-
+        
     def cmdCB(self, _data:CtrlCmd):
-        self.target_vel = _data.velocity
-        # print('vel',_data.velocity)
+        self.target_vel     = _data.velocity
         self.des_steering   = _data.steering
-        self.des_brake  = _data.brake
-        # print('angle:', self.steering)     
+        self.des_brake      = _data.brake
         
     def egoCB(self, _data: EgoVehicleStatus):
         self.vel_x = _data.velocity.x
@@ -99,11 +98,19 @@ class velocity_PidController :                                                  
         return output
     
     def angle_pid(self):
-        error                   = self.des_steering - self.cur_steering  
+        error                   = self.des_steering - self.yaw 
+        # print(self.yaw * 57.3, self.des_steering * 57.3) 
+        
+        if abs(error) > pi:
+            if error > 0:
+                error -= 2*pi
+            else:
+                error += 2*pi
+                
         p_control               = self.angle_p_gain * error
         self.angle_i_control    += self.angle_i_gain * error * self.controlTime
         d_control               = self.angle_d_gain * (error - self.angle_prev_error) / self.controlTime
-        output                  = p_control + self.angle_i_control + d_control
+        output                  = p_control #+ self.angle_i_control + d_control
         self.angle_prev_error   = error
         return output
     
@@ -182,7 +189,7 @@ class velocity_PidController :                                                  
             else :
                 pass
             
-            print(self.ctrl_msg.steering)
+            # print(self.ctrl_msg.steering)
             self.ctrl_pub.publish(self.ctrl_msg) 
             self.rate.sleep()
 

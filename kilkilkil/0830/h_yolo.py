@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import sys
+
 from xml.etree.ElementPath import get_parent_map
 import rospy
 
@@ -22,8 +23,8 @@ class Yolo:
         self.yolo_real = False    ### Morai
         # self.yolo_real = True     ### real
         
-        # self.yolo_final = True
-        self.yolo_final = False
+        self.yolo_final = True
+        # self.yolo_final = False
         
         self.current_waypoint = 0
         
@@ -121,9 +122,9 @@ class Yolo:
                 pass
         ##############
         
-        print(self._yolo_data)
-        print('red', self.red_staus)
-        print('green', self.green_staus)
+        # print(self._yolo_data)
+        # print('red', self.red_staus)
+        # print('green', self.green_staus)
         
 def main(args):
 

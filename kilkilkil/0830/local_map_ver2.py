@@ -99,8 +99,6 @@ class SubLocalMap():
 
         self.path_length = 0
 
-
-
         self.local_map_marker_1 = Marker()
         self.local_map_marker_2 = Marker()
         self.local_map_marker_3 = Marker()
@@ -300,18 +298,16 @@ class SubLocalMap():
             # print(self.realrealreal_LocalPath_x)
             # print(self.realrealreal_LocalPath_y)
             # print('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
-            # print("sibal")
-            self.path_length = len(self.arrayRealLocalPath_x)
-            # print(self.path_length)
-            # print(self.realrealreal_LocalPath_x[0])
-            # print(self.realrealreal_LocalPath_y[0])
-
-            # print(self.arrayRealLocalPath_x[0])
+            self.path_length = len(self.arrayRealLocalPath_x) 
             
             if self.path_length >= 1:
                 self.pub_marker((self.arrayRealLocalPath_x[0] * self.fResolution) + self.localmap_start_x, (self.arrayRealLocalPath_y[0] * self.fResolution) + self.localmap_start_y, 
                                 (self.arrayRealLocalPath_x[self.dis_obstacle ]* self.fResolution) + self.localmap_start_x , (self.arrayRealLocalPath_y[self.dis_obstacle ] * self.fResolution) + self.localmap_start_y,
                                 (self.arrayRealLocalPath_x[self.path_length - 1]* self.fResolution) + self.localmap_start_x, (self.arrayRealLocalPath_y[self.path_length - 1] * self.fResolution) + self.localmap_start_y)
+                
+                #  self.pub_marker((self.arrayRealLocalPath_x[0] * self.fResolution) + self.localmap_start_x, (self.arrayRealLocalPath_y[0] * self.fResolution) + self.localmap_start_y, 
+                #                 (self.arrayRealLocalPath_x[int(self.path_length /2 )]* self.fResolution) + self.localmap_start_x , (self.arrayRealLocalPath_y[int(self.path_length/2) ] * self.fResolution) + self.localmap_start_y,
+                #                 (self.arrayRealLocalPath_x[self.path_length - 1]* self.fResolution) + self.localmap_start_x, (self.arrayRealLocalPath_y[self.path_length - 1] * self.fResolution) + self.localmap_start_y)
                 
                 # self.pub_marker((self.arrayRealLocalPath_x[0] * self.fResolution) + self.localmap_start_x - self.fake_x, (self.arrayRealLocalPath_y[0] * self.fResolution) + self.localmap_start_y - self.fake_y, 
                 #                 (self.arrayRealLocalPath_x[self.dis_obstacle ]* self.fResolution) + self.localmap_start_x - self.fake_x , (self.arrayRealLocalPath_y[self.dis_obstacle ] * self.fResolution) + self.localmap_start_y - self.fake_y,
@@ -345,19 +341,25 @@ class SubLocalMap():
                     
                     ##################           
 
-                    if _data1 >= 100 or _data2 >= 100 or _data3 >= 100 or _data4 >= 100 or _data5 >= 100:
-                        _start_pos_x    = _data_check_x[1]
-                        _start_pos_y    = _data_check_y[1]
-                        _goal_pos_x     = _data_check_x[self.path_length - 1]
-                        _goal_pos_y     = _data_check_y[self.path_length - 1]
-                        _obstacle_pos_x = _data_check_x[self.dis_obstacle]
-                        _obstacle_pos_y = _data_check_y[self.dis_obstacle]
-                        self.resultPath = self.srvAstar(_start_pos_x, _start_pos_y, _goal_pos_x, _goal_pos_y, _obstacle_pos_x, _obstacle_pos_y)
-                        print('astar publish')
-                        self.bastarState = True
-                        if self.current_waypoint in self.dynamic_obastcle_lines:
+                    if self.current_waypoint in self.dynamic_obastcle_lines:
+                        if _data1 >= 100 or _data2 >= 100 or _data3 >= 100 or _data4 >= 100 or _data5 >= 100:
                             self.stop = True   
-                            self.pub_stop.publish(3)
+                            self.pub_stop.publish(1)
+                        else:
+                            self.pub_stop.publish(0)
+                    elif self.current_waypoint in self.obstacle_lines:       
+                        if _data1 >= 100 or _data2 >= 100 or _data3 >= 100 or _data4 >= 100 or _data5 >= 100:
+                            _start_pos_x    = _data_check_x[1]
+                            _start_pos_y    = _data_check_y[1]
+                            _goal_pos_x     = _data_check_x[self.path_length - 1]
+                            _goal_pos_y     = _data_check_y[self.path_length - 1]
+                            _obstacle_pos_x = _data_check_x[self.dis_obstacle]
+                            _obstacle_pos_y = _data_check_y[self.dis_obstacle]         
+                            self.resultPath = self.srvAstar(_start_pos_x, _start_pos_y, _goal_pos_x, _goal_pos_y, _obstacle_pos_x, _obstacle_pos_y)
+                            print('astar publish')
+                            self.bastarState = True
+                        
+                        
                     
                     rospy.sleep(0.1)
             except:

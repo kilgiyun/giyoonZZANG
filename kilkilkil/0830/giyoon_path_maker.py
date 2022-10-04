@@ -1,36 +1,54 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from curses.ascii import ctrl
 import os
 import sys
 import rospy
 import rospkg
-from morai_msgs.msg  import EgoVehicleStatus, GPSMessage
+from morai_msgs.msg  import EgoVehicleStatus, GPSMessage, CtrlCmd
 from math import pi,cos,sin,pi,sqrt,pow
 from nav_msgs.msg import Path
-from sensor_msgs.msg import NavSatFix
+from sensor_msgs.msg import NavSatFix, Imu
 from geometry_msgs.msg import PoseStamped
 from pyproj import Proj
 from std_msgs.msg import Float64,Int16,Float32MultiArray
+from datetime import datetime
+
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 class test :
-
     def __init__(self):
-        rospy.init_node('path_maker', anonymous=True)
-
         self.path_folder_name="path"
-        self.make_path_name=input("저장할 파일명을 입력하시오: ")
-
-        rospy.Subscriber("/gps",GPSMessage, self.gpsCB)
+        month   = datetime.now().month
+        day     = datetime.now().day
+        hour    = datetime.now().hour
+        minute  = datetime.now().minute
+        # print('{0}-{1}/{2}:{3}'.format(month, day, hour, minute))
+        # current_time = month/day hour: minute
+        # print(current_time)
+        # self.make_path_name=input("저장할 파일명을 입력하시오: ")
+        # self.make_path_name=rospy.Time()
+        self.make_path_name = '{0}월{1}일{2}시{3}분'.format(month, day, hour, minute)
 
         # rospy.Subscriber("/ublox_gps/fix",NavSatFix, self.gpsCB)
-        self.global_path_pub= rospy.Publisher('/global_path',Path, queue_size=1)
 
+        rospy.init_node('logger', anonymous=False)
+        
         self.proj_UTM= Proj(proj='utm', zone=52, ellps='WGS84', preserve_units=False)
 
         self.is_status  = False
         self.gps_status = True
+        
+        self.yaw = 0
+        self.des_vel=0
+        self.des_steer=0
+        self.cur_vel=0
+        self.mode=0
 
+        self.x  =   0
+        self.y  =   0
+        
         self.prev_x = 0
         self.prev_y = 0
 
@@ -43,6 +61,14 @@ class test :
         self.x_init = 302473.5122667786
         self.y_init = 4123735.6543077542
         
+        rospy.Subscriber("/gps",GPSMessage, self.gpsCB)
+        rospy.Subscriber('/imu',Imu, self.imuCB)
+        rospy.Subscriber('/ctrl_cmd',CtrlCmd, self.ctrlCB)
+        rospy.Subscriber('/Ego_topic',EgoVehicleStatus,self.egoCB)
+        rospy.Subscriber('/mode',Int16,self.modeCB)
+        
+        self.global_path_pub= rospy.Publisher('/global_path',Path, queue_size=1)        
+
         rospack =   rospkg.RosPack()
         pkg_path =  rospack.get_path('my_test')
         full_path = pkg_path +'/'+ self.path_folder_name+'/'+self.make_path_name+'.txt'       ## linux
@@ -50,14 +76,24 @@ class test :
         self.f =    open(full_path, 'w')
 
         rate=rospy.Rate(30)
-
+        self.f.write('x\ty\tmode\tdes_steer\taccel\tyaw\tcur_vel\n')
         while not rospy.is_shutdown():
             if self.is_status==True:
                 self.path_make()
             rate.sleep()    
 
         self.f.close()
-
+    
+    def egoCB(self, data:EgoVehicleStatus):
+        self.cur_vel = data.velocity.x * 3.6    
+        
+    def modeCB(self, data:Int16):
+        self.mode = data.data    
+    
+    def ctrlCB(self, data:CtrlCmd):
+        self.des_steer = data.steering
+        self.des_vel = data.accel
+        
     def gpsCB(self, gps_msg:GPSMessage):
         self.lat=gps_msg.latitude
         self.lon=gps_msg.longitude
@@ -73,15 +109,27 @@ class test :
 
         self.is_status=True
 
+    def imuCB(self, _data:Imu):
+        quaternion = (_data.orientation.x, _data.orientation.y, _data.orientation.z, _data.orientation.w)
+        self.roll,self.pitch,self.yaw = euler_from_quaternion(quaternion)           #### roll, pitch, yaw 로 변환
+        self.is_status = True
+        
     def path_make(self):
         x=self.x
         y=self.y
+        des_steering=self.des_steer
+        accel=self.des_vel
+        yaw=self.yaw
+        cur_vel=self.cur_vel
+        mode = self.mode
 
         distance=sqrt(pow(x-self.prev_x,2)+pow(y-self.prev_y,2))
+        
         # print(distance)
+        # ('x\ty\tmode\tdes_steer\taccel\tyaw\tcur_vel\n')
         if distance > 1:
-            data='{0}\t{1}\n'.format(x,y)
-            print(data)
+            data='{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\n'.format(x,y,mode,des_steering,accel,yaw,cur_vel)
+            # print(data)
             self.f.write(data)
             self.prev_x=x
             self.prev_y=y

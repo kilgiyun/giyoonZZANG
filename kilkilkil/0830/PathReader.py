@@ -114,7 +114,7 @@ class pathReader():
             # if self.current_waypoint == len(self.global_path.poses) - 1:
             #     # self.ctrl_cmd
         else :
-            last_local_waypoint = self.current_waypoint + 16
+            last_local_waypoint = self.current_waypoint + 14
 
         out_path.header.frame_id = 'map'
         # out_path.header.frame_id = 'fake_base_link'

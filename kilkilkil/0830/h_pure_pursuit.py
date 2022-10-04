@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from genericpath import exists
 from importlib.resources import path
+from itertools import count
 import pstats
 import sys
 
@@ -12,7 +14,7 @@ from sensor_msgs.msg import Imu
 from geometry_msgs.msg import Point
 from morai_msgs.msg import EgoVehicleStatus,CtrlCmd, GPSMessage
 from std_msgs.msg import Int16
-
+import pandas as pd
 
 from math import cos,sin,sqrt,pow,atan2,pi
 import tf
@@ -30,11 +32,10 @@ class PurePursuit:                                          #### purePursuit 알
         self.is_status    = False
         self.gps_init     = True
         
-        self.basic_vel = 5
+        self.basic_vel = 6
         
         self.rate = rospy.Rate(10)
 
-        # self.pid                   = pidController()
         self.ctrl_msg              = CtrlCmd()
         self.forward_point         = Point()
         self.current_position      = Point()
@@ -125,15 +126,18 @@ class PurePursuit:                                          #### purePursuit 알
         vehicle_position            = self.current_position
         rotated_point               = Point()
         self.is_look_forward_point  = False
-        
         try:
             if self.local_status:
                 # print('modeeeeeeeeee:', self.mode)
                 if self.mode == 1:
-                    print('local')
+                    # print('local')
                     for k in range(len(self.local_path.poses)):
-                        dx = self.local_path.poses[k ].pose.position.x - vehicle_position.x ## 변위
-                        dy = self.local_path.poses[k ].pose.position.y - vehicle_position.y ## 변위
+                        dx = self.local_path.poses[k].pose.position.x - vehicle_position.x ## 변위
+                        dy = self.local_path.poses[k].pose.position.y - vehicle_position.y ## 변위
+                        
+                        # print(self.local_path.poses[k].pose.position.x, vehicle_position.x)
+                        # print(self.local_path.poses[k].pose.position.y, vehicle_position.y)
+                        # print(atan2(dy, dx)*57.3, vehicle_yaw*57.3)
 
                         rotated_point.x = cos(vehicle_yaw)*dx + sin(vehicle_yaw)*dy ## 
                         rotated_point.y = sin(vehicle_yaw)*dx - cos(vehicle_yaw)*dy ##
@@ -157,17 +161,25 @@ class PurePursuit:                                          #### purePursuit 알
                             
                     theta=atan2(rotated_point.y,rotated_point.x)
                     
-                    self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)   #### 추종 각도 
-                    # print('local:', self.steering)
+                    # self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)   #### 추종 각도
+                    self.steering = atan2(dy, dx) 
+                    # print('local:', self.steering * 57.3)
                     return self.steering                                                        #### Steering 반환 
 
                 elif self.mode == 2:
-                    print('astar')
+                    # print('astar')
                     # print(len(self.astar_path.poses))
                     for l in range(0, len(self.astar_path.poses)):
                         # print(l)
-                        dx = self.astar_path.poses[l].pose.position.x - vehicle_position.x ## 변위
-                        dy = self.astar_path.poses[l].pose.position.y - vehicle_position.y ## 변위
+                        dx = self.astar_path.poses[l + 1].pose.position.x - vehicle_position.x ## 변위
+                        dy = self.astar_path.poses[l + 1].pose.position.y - vehicle_position.y ## 변위
+                        
+                        # dx = self.astar_path.poses[l + 1].pose.position.y - vehicle_position.y ## 변위
+                        # dy = self.astar_path.poses[l + 1].pose.position.x - vehicle_position.x ## 변위
+                        
+                        # print(self.astar_path.poses[l + 1].pose.position.x, vehicle_position.x)
+                        # print(self.astar_path.poses[l + 1].pose.position.y, vehicle_position.y)
+                        # print(atan2(dy, dx)*57.3, vehicle_yaw*57.3)
 
                         rotated_point.x = cos(vehicle_yaw)*dx + sin(vehicle_yaw)*dy ## 
                         rotated_point.y = sin(vehicle_yaw)*dx - cos(vehicle_yaw)*dy ##
@@ -189,8 +201,8 @@ class PurePursuit:                                          #### purePursuit 알
                             break
                     theta=atan2(rotated_point.y,rotated_point.x)
                     
-                    self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)   #### 추종 각도 
-                    
+                    # self.steering = atan2((2*self.vehicle_length*sin(theta)),self.lfd)   #### 추종 각도 
+                    self.steering = atan2(dy, dx)
                     return self.steering     
                 
                 else:
@@ -205,16 +217,16 @@ class PurePursuit:                                          #### purePursuit 알
 
     def vel(self):
         if type(self.ctrl_msg.steering)==float:
-            self.ctrl_msg.steering = (-self.ctrl_msg.steering)
-            if self.is_status:
-                if self.ctrl_msg.steering > abs(0.3):
-                    self.target_vel = self.goal_vel(5)
-                elif self.ctrl_msg.steering > abs(0.6):
-                    self.target_vel = self.goal_vel(5)
-                elif self.ctrl_msg.steering > abs(0.8):         
-                    self.target_vel = self.goal_vel(5)
-                else:
-                    self.target_vel = self.goal_vel(self.basic_vel)
+            self.ctrl_msg.steering = (self.ctrl_msg.steering)
+            # if self.is_status:
+                # if self.ctrl_msg.steering > abs(0.3):
+                #     self.target_vel = self.goal_vel(15)
+                # elif self.ctrl_msg.steering > abs(0.6):
+                #     self.target_vel = self.goal_vel(15)
+                # elif self.ctrl_msg.steering > abs(0.8):         
+                #     self.target_vel = self.goal_vel(15)
+                # else:
+            self.target_vel = self.goal_vel(self.basic_vel)
 
         return self.target_vel
     
