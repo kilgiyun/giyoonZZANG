@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<launch>
+	<arg name="vehicle_state_topic" default="/vehicle_state_out" />
+	
+	<node name="vehicle_state_node" pkg="vehicle_state_pkg" type="vehicle_state.py" output="screen" >
+		<param name="child_frame_id" value="base_link" />
+		<param name="vehicle_state_in_topic" value="/Ego_topic" />
+		<param name="vehicle_imu_in_topic" value="/imu" />
+		<param name="vehicle_state_out_topic" value="$(arg vehicle_state_topic)" />
+	</node>
+</launch>
+
