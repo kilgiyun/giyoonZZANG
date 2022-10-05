@@ -78,7 +78,7 @@ class velocity_PidController :                                                  
         
         ##=========================for ERP42============================##
         rospy.Subscriber('/linear_vel', EgoVehicleStatus, self.egoCB)
-        rospy.Subscriber('/imuComp',Float32,self.imuCB)
+        rospy.Subscriber('/imugen',Float32,self.imuCB)
         
         self.main()
 

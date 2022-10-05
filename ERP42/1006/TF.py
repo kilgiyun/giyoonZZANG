@@ -23,7 +23,7 @@ class TF():
         # rospy.Subscriber('/imu', Imu, self.imuCB)
         
         rospy.Subscriber('/ublox_gps/fix', NavSatFix, self.gpsCB)
-        rospy.Subscriber('/imuComp',Float32,self.imuCB)
+        rospy.Subscriber('/imugen',Float32,self.imuCB)
         
         # rospy.Subscriber('/lidar2D', LaserScan, self.lidarCB)
         rospy.Subscriber('/lidar3D', PointCloud2, self.lidarCB)

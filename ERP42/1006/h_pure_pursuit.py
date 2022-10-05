@@ -86,7 +86,7 @@ class PurePursuit:                                          #### purePursuit 알
         ##=====for ERP42======================================================##
         rospy.Subscriber('/linear_vel', EgoVehicleStatus, self.egoCB)
         rospy.Subscriber('/ublox_gps/fix', NavSatFix, self.gpsCB)
-        rospy.Subscriber('/imuComp',Float32,self.imuCB)    
+        rospy.Subscriber('/imugen',Float32,self.imuCB)    
         
         self.mode_pub = rospy.Publisher('/mode',Int16, queue_size=10)
         self.cmd_pub  = rospy.Publisher('/cmd',CtrlCmd, queue_size=10)

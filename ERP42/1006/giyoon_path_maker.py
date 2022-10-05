@@ -70,7 +70,7 @@ class test :
         ##=====for ERP42======================================================##
         rospy.Subscriber('/linear_vel', EgoVehicleStatus, self.egoCB)
         rospy.Subscriber('/ublox_gps/fix', NavSatFix, self.gpsCB)
-        rospy.Subscriber('/imuComp',Float32,self.imuCB)
+        rospy.Subscriber('/imugen',Float32,self.imuCB)
         
         rospy.Subscriber('/ctrl_cmd',CtrlCmd, self.ctrlCB)
         rospy.Subscriber('/mode',Int16,self.modeCB)

@@ -82,7 +82,7 @@ class data_frame:
         # rospy.Subscriber('/Ego_topic', EgoVehicleStatus, self.egoCB)
         
         ##=====for ERP42======================================================##
-        rospy.Subscriber('/imuComp',Float32,self.imuCB)
+        rospy.Subscriber('/imugen',Float32,self.imuCB)
         rospy.Subscriber('/ublox_gps/fix', NavSatFix, self.gpsCB)
         
         rospy.Subscriber('/local_path', Path, self.LocalCB)
