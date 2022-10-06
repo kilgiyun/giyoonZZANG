@@ -1,0 +1,8 @@
+<launch>
+	<node name="trackV1" pkg="test" type="trackV1.py" />
+
+	<node name="controller" pkg="test" type="controller.py" />
+
+	<node name="cmd_to_serial" pkg="test" type="cmd_to_serial.py" output = 'screen' />
+	
+</launch>
